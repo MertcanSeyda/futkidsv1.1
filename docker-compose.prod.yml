@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: futkids-db
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - futkids-net
+
+  backend:
+    build: ./backend
+    container_name: futkids-api
+    restart: always
+    env_file: ./backend/.env
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/futkids
+    depends_on:
+      - mongodb
+    networks:
+      - futkids-net
+
+  web-app:
+    build: ./web-app
+    container_name: futkids-client
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.futkids.com
+    networks:
+      - futkids-net
+
+  web-panel:
+    build: ./web-panel
+    container_name: futkids-admin
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.futkids.com
+    networks:
+      - futkids-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: futkids-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - backend
+      - web-app
+      - web-panel
+    networks:
+      - futkids-net
+
+networks:
+  futkids-net:
+    driver: bridge
+
+volumes:
+  mongo-data:

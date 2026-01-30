@@ -1,0 +1,103 @@
+[
+  {
+    "_id": "697cfb7ee6b15ea4407bf086",
+    "email": "mert@futkids.com",
+    "password": "$2b$10$XGkkoqtEMNxpwDh.fD7HIOxhrPep5hQ7GFLl0DUUbe/h7pz3bJGd2",
+    "fullName": "Mert Küçük",
+    "role": "player",
+    "academy": "697cfb7ee6b15ea4407bf07a",
+    "playerProfile": {
+      "position": "ST",
+      "rating": 85,
+      "parent": "697cfb7ee6b15ea4407bf082",
+      "stats": {
+        "pace": 0,
+        "shooting": 0,
+        "passing": 0,
+        "dribbling": 0,
+        "defending": 0,
+        "physical": 0
+      },
+      "coachNotes": []
+    },
+    "createdAt": "2026-01-30T18:42:06.393Z",
+    "updatedAt": "2026-01-30T18:42:06.393Z",
+    "__v": 0
+  },
+  {
+    "_id": "697cfb7ee6b15ea4407bf088",
+    "email": "can@futkids.com",
+    "password": "$2b$10$XGkkoqtEMNxpwDh.fD7HIOxhrPep5hQ7GFLl0DUUbe/h7pz3bJGd2",
+    "fullName": "Can Yıldız",
+    "role": "player",
+    "academy": "697cfb7ee6b15ea4407bf07a",
+    "playerProfile": {
+      "position": "GK",
+      "rating": 78,
+      "parent": "697cfb7ee6b15ea4407bf082",
+      "stats": {
+        "pace": 0,
+        "shooting": 0,
+        "passing": 0,
+        "dribbling": 0,
+        "defending": 0,
+        "physical": 0
+      },
+      "coachNotes": []
+    },
+    "createdAt": "2026-01-30T18:42:06.394Z",
+    "updatedAt": "2026-01-30T18:42:06.394Z",
+    "__v": 0
+  },
+  {
+    "_id": "697cfb7ee6b15ea4407bf08a",
+    "email": "arda@futkids.com",
+    "password": "$2b$10$XGkkoqtEMNxpwDh.fD7HIOxhrPep5hQ7GFLl0DUUbe/h7pz3bJGd2",
+    "fullName": "Arda Güler",
+    "role": "player",
+    "academy": "697cfb7ee6b15ea4407bf07c",
+    "playerProfile": {
+      "position": "CAM",
+      "rating": 92,
+      "parent": "697cfb7ee6b15ea4407bf084",
+      "stats": {
+        "pace": 0,
+        "shooting": 0,
+        "passing": 0,
+        "dribbling": 0,
+        "defending": 0,
+        "physical": 0
+      },
+      "coachNotes": []
+    },
+    "createdAt": "2026-01-30T18:42:06.395Z",
+    "updatedAt": "2026-01-30T18:42:06.395Z",
+    "__v": 0
+  },
+  {
+    "_id": "697cfc04e6b15ea4407bf0b2",
+    "email": "erhan@gmail.com",
+    "password": "$2b$10$VJu0DyzphI4WuL0l.pWgg.pevQX0bYGADK1POzT7enjKDyP1iVfeK",
+    "fullName": "erhan",
+    "role": "player",
+    "academy": "697cfb7ee6b15ea4407bf07c",
+    "phone": "",
+    "playerProfile": {
+      "position": "ST",
+      "rating": 23,
+      "stats": {
+        "pace": 23,
+        "shooting": 56,
+        "passing": 15,
+        "dribbling": 15,
+        "defending": 15,
+        "physical": 15
+      },
+      "parent": "697cfb7ee6b15ea4407bf082",
+      "coachNotes": []
+    },
+    "createdAt": "2026-01-30T18:44:20.576Z",
+    "updatedAt": "2026-01-30T18:44:20.576Z",
+    "__v": 0
+  }
+]
