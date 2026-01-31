@@ -14,7 +14,20 @@ async function bootstrap() {
   }));
 
   // CORS
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://futkids.com',
+      'https://futkids.com',
+      'http://www.futkids.com',
+      'https://www.futkids.com',
+      'http://admin.futkids.com',
+      'https://admin.futkids.com'
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
 
   // Swagger Setup
   const config = new DocumentBuilder()
