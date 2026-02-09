@@ -9,6 +9,8 @@ services:
       - mongo-data:/data/db
     networks:
       - futkids-net
+    ports:
+      - "27017:27017"
 
   backend:
     build: ./backend
@@ -21,30 +23,36 @@ services:
       - mongodb
     networks:
       - futkids-net
+    ports:
+      - "4000:4000"
 
   web-app:
     build:
       context: ./web-app
       args:
-        NEXT_PUBLIC_API_URL: http://api.futkids.com
+        NEXT_PUBLIC_API_URL: https://api.futkids.com
     container_name: futkids-client
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=http://api.futkids.com
+      - NEXT_PUBLIC_API_URL=https://api.futkids.com
     networks:
       - futkids-net
+    ports:
+      - "3000:3000"
 
   web-panel:
     build:
       context: ./web-panel
       args:
-        NEXT_PUBLIC_API_URL: http://api.futkids.com
+        NEXT_PUBLIC_API_URL: https://api.futkids.com
     container_name: futkids-admin
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=http://api.futkids.com
+      - NEXT_PUBLIC_API_URL=https://api.futkids.com
     networks:
       - futkids-net
+    ports:
+      - "3001:3000"
 
   nginx:
     image: nginx:alpine
@@ -54,7 +62,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certbot/conf:/etc/letsencrypt
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot
     depends_on:
       - backend
