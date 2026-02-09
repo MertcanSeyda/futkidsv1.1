@@ -23,8 +23,6 @@ services:
       - mongodb
     networks:
       - futkids-net
-    ports:
-      - "4000:4000"
 
   web-app:
     build:
@@ -34,11 +32,9 @@ services:
     container_name: futkids-client
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=https://api.futkids.com
+      NEXT_PUBLIC_API_URL: https://api.futkids.com
     networks:
       - futkids-net
-    ports:
-      - "3000:3000"
 
   web-panel:
     build:
@@ -48,11 +44,9 @@ services:
     container_name: futkids-admin
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=https://api.futkids.com
+      NEXT_PUBLIC_API_URL: https://api.futkids.com
     networks:
       - futkids-net
-    ports:
-      - "3001:3000"
 
   nginx:
     image: nginx:alpine
