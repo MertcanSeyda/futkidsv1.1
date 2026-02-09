@@ -14,9 +14,13 @@ async function bootstrap() {
   }));
 
   // CORS
-  // CORS
   app.enableCors({
-    origin: true, // Allow request origin
+    origin: [
+      'https://futkids.com',
+      'https://www.futkids.com',
+      'https://admin.futkids.com',
+      'https://api.futkids.com'
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
