@@ -842,77 +842,7 @@ function PlayersTab({
                             </select>
                         </div>
 
-                        {/* Player List */}
-                        <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
-                            {students.length === 0 ? (
-                                <div className="p-8 text-center">
-                                    <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest">Sporcu bulunamadı</p>
-                                </div>
-                            ) : (
-                                students.map((student: Student) => {
-                                    const rating = calculateRating(student.stats);
-                                    const isSelected = selectedStudent?._id === student._id;
-                                    const ratingColor = rating >= 80 ? 'text-emerald-400' : rating >= 70 ? 'text-blue-400' : rating >= 60 ? 'text-amber-400' : 'text-gray-400';
-                                    return (
-                                        <div
-                                            key={student._id}
-                                            onClick={() => setSelectedStudent(student)}
-                                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all border-l-2 ${
-                                                isSelected
-                                                    ? 'bg-white/10/10 border-l-indigo-500'
-                                                    : 'border-l-transparent hover:bg-white/[0.02]'
-                                            }`}
-                                        >
-                                            {/* Avatar */}
-                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black italic border transition-all flex-shrink-0 ${
-                                                isSelected 
-                                                    ? 'bg-white/10/20 border-white/20/50 text-gray-400' 
-                                                    : 'bg-[#111111] border-white/10 text-white'
-                                            }`}>
-                                                {student.fullName.charAt(0)}
-                                            </div>
-
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className={`font-bold text-[12px] truncate transition-colors ${isSelected ? 'text-gray-400' : 'text-white'}`}>
-                                                    {student.fullName}
-                                                </div>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="text-[9px] font-bold text-gray-500 uppercase">{student.position}</span>
-                                                    <span className="text-[9px] text-gray-600">•</span>
-                                                    <span className="text-[9px] font-bold text-gray-500 uppercase">{student.teamCategory || 'U15'}</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Rating */}
-                                            <div className={`text-lg font-black italic tracking-tighter flex-shrink-0 ${ratingColor}`}>
-                                                {rating}
-                                            </div>
-
-                                            {/* Actions */}
-                                            <div className="flex flex-col gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    onClick={() => handleEditClick(student)}
-                                                    className="p-1.5 bg-white/5 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                                                    title="DÜZENLE"
-                                                >
-                                                    <Edit className="w-3 h-3" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeletePlayer(student._id)}
-                                                    className="p-1.5 bg-white/5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                                                    title="SİL"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-
-                        {/* Inline Registration/Edit Form */}
+                        {/* Inline Registration/Edit Form - MOVED UP TO PUSH DOWN LIST */}
                         {showAddModal && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
@@ -1088,6 +1018,78 @@ function PlayersTab({
                                 </div>
                             </motion.div>
                         )}
+
+                        {/* Player List */}
+                        <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+                            {students.length === 0 ? (
+                                <div className="p-8 text-center">
+                                    <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest">Sporcu bulunamadı</p>
+                                </div>
+                            ) : (
+                                students.map((student: Student) => {
+                                    const rating = calculateRating(student.stats);
+                                    const isSelected = selectedStudent?._id === student._id;
+                                    const ratingColor = rating >= 80 ? 'text-emerald-400' : rating >= 70 ? 'text-blue-400' : rating >= 60 ? 'text-amber-400' : 'text-gray-400';
+                                    return (
+                                        <div
+                                            key={student._id}
+                                            onClick={() => setSelectedStudent(student)}
+                                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all border-l-2 ${
+                                                isSelected
+                                                    ? 'bg-white/10/10 border-l-indigo-500'
+                                                    : 'border-l-transparent hover:bg-white/[0.02]'
+                                            }`}
+                                        >
+                                            {/* Avatar */}
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black italic border transition-all flex-shrink-0 ${
+                                                isSelected 
+                                                    ? 'bg-white/10/20 border-white/20/50 text-gray-400' 
+                                                    : 'bg-[#111111] border-white/10 text-white'
+                                            }`}>
+                                                {student.fullName.charAt(0)}
+                                            </div>
+
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`font-bold text-[12px] truncate transition-colors ${isSelected ? 'text-gray-400' : 'text-white'}`}>
+                                                    {student.fullName}
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-[9px] font-bold text-gray-500 uppercase">{student.position}</span>
+                                                    <span className="text-[9px] text-gray-600">•</span>
+                                                    <span className="text-[9px] font-bold text-gray-500 uppercase">{student.teamCategory || 'U15'}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Rating */}
+                                            <div className={`text-lg font-black italic tracking-tighter flex-shrink-0 ${ratingColor}`}>
+                                                {rating}
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex flex-col gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    onClick={() => handleEditClick(student)}
+                                                    className="p-1.5 bg-white/5 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    title="DÜZENLE"
+                                                >
+                                                    <Edit className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeletePlayer(student._id)}
+                                                    className="p-1.5 bg-white/5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    title="SİL"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+
                     </div>
                 </div>
             </div>
