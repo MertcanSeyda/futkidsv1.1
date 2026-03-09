@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Eraser, Pen, MousePointer2, RefreshCcw, Save, Play, Square, Circle, RotateCcw, X, Trash2, FolderOpen, Sparkles } from "lucide-react";
+import { Eraser, Pen, MousePointer2, RefreshCcw, Save, Play, Square, Circle, RotateCcw, X, Trash2, FolderOpen, Sparkles, Plus, Users } from "lucide-react";
 import api from "@/lib/api";
 
 interface Token {
     id: string;
-    type: 'home' | 'away' | 'ball';
+    type: 'home' | 'away' | 'ball' | 'equipment' | 'player';
     x: number;
     y: number;
     label?: string;
+    equipmentType?: 'cone' | 'pole' | 'hurdle' | 'mannequin';
+    studentId?: string;
 }
 
 interface Frame {
@@ -15,24 +17,55 @@ interface Frame {
     timestamp: number;
 }
 
-export default function TacticsBoard() {
+export default function TacticsBoard({ students = [] }: { students?: any[] }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [mode, setMode] = useState<'move' | 'draw' | 'erase'>('move');
+    const [mode, setMode] = useState<'move' | 'draw' | 'erase' | 'delete'>('move');
     const [color, setColor] = useState('#ffffff');
     const [tokens, setTokens] = useState<Token[]>([
         { id: 'h1', type: 'home', x: 250, y: 150, label: '1' },
         { id: 'h2', type: 'home', x: 300, y: 100, label: '2' },
         { id: 'h3', type: 'home', x: 300, y: 200, label: '3' },
-        { id: 'h4', type: 'home', x: 200, y: 250, label: '4' },
-        { id: 'h5', type: 'home', x: 100, y: 150, label: 'GK' },
         { id: 'b1', type: 'ball', x: 250, y: 150 },
-        { id: 'a1', type: 'away', x: 350, y: 150, label: '1' },
-        { id: 'a2', type: 'away', x: 400, y: 100, label: '2' },
-        { id: 'a3', type: 'away', x: 400, y: 200, label: '3' },
-        { id: 'a4', type: 'away', x: 450, y: 50, label: '4' },
-        { id: 'a5', type: 'away', x: 500, y: 150, label: 'GK' },
     ]);
+
+    // Sidebar State
+    const [activeSidebarTab, setActiveSidebarTab] = useState<'players' | 'equipment'>('players');
+
+    const equipmentList = [
+        { id: 'cone', label: 'Huni', icon: <Circle className="w-5 h-5 text-orange-500" /> },
+        { id: 'pole', label: 'Direk', icon: <Square className="w-5 h-5 text-yellow-500" /> },
+        { id: 'hurdle', label: 'Engel', icon: <X className="w-5 h-5 text-red-500" /> },
+        { id: 'mannequin', label: 'Baraj', icon: <Users className="w-5 h-5 text-blue-500" /> },
+    ];
+
+    const addToken = (type: Token['type'], extra: any = {}) => {
+        let label = extra.label || '';
+
+        if (type === 'player') {
+            // Find highest current number among player tokens
+            const playerTokens = tokens.filter(t => t.type === 'player');
+            const numbers = playerTokens.map(t => parseInt(t.label || '0')).filter(n => !isNaN(n));
+            const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+            label = nextNumber.toString();
+        } else if (type === 'home') {
+            const homeTokens = tokens.filter(t => t.type === 'home');
+            label = (homeTokens.length + 1).toString();
+        } else if (type === 'away') {
+            const awayTokens = tokens.filter(t => t.type === 'away');
+            label = (awayTokens.length + 1).toString();
+        }
+
+        const newToken: Token = {
+            id: Math.random().toString(36).substr(2, 9),
+            type,
+            x: 400 + (Math.random() * 50 - 25),
+            y: 300 + (Math.random() * 50 - 25),
+            ...extra,
+            label
+        };
+        setTokens([...tokens, newToken]);
+    };
 
     // Simulation State
     const [isRecording, setIsRecording] = useState(false);
@@ -93,7 +126,89 @@ export default function TacticsBoard() {
             const academyId = user.academy._id || user.academy;
 
             const response = await api.get(`/tactics?academy=${academyId}`);
-            setTacticsList(response.data);
+
+            const presets = [
+                {
+                    _id: 'p1',
+                    name: "4-3-3 Ofansif",
+                    description: "Standart hücum dizilişi",
+                    isPreset: true,
+                    tokens: [
+                        { id: 'h1', type: 'home', x: 400, y: 560, label: 'GK' },
+                        { id: 'h2', type: 'home', x: 150, y: 450, label: '2' },
+                        { id: 'h3', type: 'home', x: 330, y: 480, label: '4' },
+                        { id: 'h4', type: 'home', x: 470, y: 480, label: '5' },
+                        { id: 'h5', type: 'home', x: 650, y: 450, label: '3' },
+                        { id: 'h6', type: 'home', x: 400, y: 380, label: '6' },
+                        { id: 'h7', type: 'home', x: 300, y: 280, label: '8' },
+                        { id: 'h8', type: 'home', x: 500, y: 280, label: '10' },
+                        { id: 'h9', type: 'home', x: 150, y: 150, label: '7' },
+                        { id: 'h10', type: 'home', x: 400, y: 120, label: '9' },
+                        { id: 'h11', type: 'home', x: 650, y: 150, label: '11' },
+                        { id: 'b1', type: 'ball', x: 400, y: 240 }
+                    ]
+                },
+                {
+                    _id: 'p2',
+                    name: "Üçgen Geçiş",
+                    description: "Hızlı kısa pas istasyonu çalışması",
+                    isPreset: true,
+                    tokens: [
+                        { id: 'pl1', type: 'player', x: 300, y: 300, label: '1' },
+                        { id: 'pl2', type: 'player', x: 500, y: 300, label: '2' },
+                        { id: 'pl3', type: 'player', x: 400, y: 150, label: '3' },
+                        { id: 'c1', type: 'equipment', x: 300, y: 300, equipmentType: 'cone' },
+                        { id: 'c2', type: 'equipment', x: 500, y: 300, equipmentType: 'cone' },
+                        { id: 'c3', type: 'equipment', x: 400, y: 150, equipmentType: 'cone' },
+                        { id: 'b1', type: 'ball', x: 300, y: 280 }
+                    ]
+                },
+                {
+                    _id: 'p3',
+                    name: "Geniş Alan Baskı",
+                    description: "Kanat rotasyonu ve pres çalışması",
+                    isPreset: true,
+                    tokens: [
+                        { id: 'pl1', type: 'player', x: 100, y: 300, label: '7' },
+                        { id: 'pl2', type: 'player', x: 400, y: 300, label: '6' },
+                        { id: 'pl3', type: 'player', x: 700, y: 300, label: '11' },
+                        { id: 'm1', type: 'equipment', x: 250, y: 200, equipmentType: 'mannequin' },
+                        { id: 'm2', type: 'equipment', x: 550, y: 200, equipmentType: 'mannequin' },
+                        { id: 'b1', type: 'ball', x: 120, y: 300 }
+                    ]
+                },
+                {
+                    _id: 'p4',
+                    name: "Hızlı Hücum",
+                    description: "Kontra atak ve bitiricilik drill-i",
+                    isPreset: true,
+                    tokens: [
+                        { id: 'pl1', type: 'player', x: 400, y: 500, label: '8' },
+                        { id: 'pl2', type: 'player', x: 200, y: 200, label: '7' },
+                        { id: 'pl3', type: 'player', x: 600, y: 200, label: '11' },
+                        { id: 'pl4', type: 'player', x: 400, y: 100, label: '9' },
+                        { id: 'h1', type: 'equipment', x: 400, y: 10, equipmentType: 'pole' },
+                        { id: 'b1', type: 'ball', x: 400, y: 480 }
+                    ]
+                },
+                {
+                    _id: 'p5',
+                    name: "Duran Top Savunması",
+                    description: "Korner ve yan top yerleşim çalışması",
+                    isPreset: true,
+                    tokens: [
+                        { id: 'pl1', type: 'player', x: 400, y: 50, label: 'GK' },
+                        { id: 'pl2', type: 'player', x: 350, y: 100, label: '4' },
+                        { id: 'pl3', type: 'player', x: 450, y: 100, label: '5' },
+                        { id: 'pl4', type: 'player', x: 400, y: 150, label: '6' },
+                        { id: 'aw1', type: 'away', x: 300, y: 120, label: '9' },
+                        { id: 'aw2', type: 'away', x: 500, y: 120, label: '11' },
+                        { id: 'b1', type: 'ball', x: 30, y: 30 }
+                    ]
+                }
+            ];
+
+            setTacticsList([...presets, ...response.data]);
         } catch (error) {
             console.error("Taktikler yüklenemedi:", error);
         } finally {
@@ -415,7 +530,13 @@ export default function TacticsBoard() {
                         active={mode === 'erase'}
                         onClick={() => setMode('erase')}
                         icon={<Eraser className="w-5 h-5" />}
-                        label="Sil"
+                        label="Sil (Çizim)"
+                    />
+                    <ToolButton
+                        active={mode === 'delete'}
+                        onClick={() => setMode('delete')}
+                        icon={<Trash2 className="w-5 h-5 text-red-400" />}
+                        label="Token Sil"
                     />
                     <button
                         onClick={clearDrawings}
@@ -495,7 +616,7 @@ export default function TacticsBoard() {
             </div>
 
             {/* AI Prompt Bar */}
-            <div className="w-full max-w-[800px] flex items-center gap-3 bg-indigo-600/10 p-2 rounded-xl border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+            <div className="w-full flex items-center gap-3 bg-indigo-600/10 p-2 rounded-xl border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
                 <div className="p-2 bg-indigo-600 text-white rounded-lg">
                     <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
@@ -516,58 +637,139 @@ export default function TacticsBoard() {
                 </button>
             </div>
 
-            {/* Board Container */}
-            <div className="relative w-full max-w-[800px] aspect-[3/2] bg-[#1a1a1a] rounded-xl shadow-2xl border-4 border-[#252525] overflow-hidden select-none">
-                <div
-                    ref={containerRef}
-                    className="absolute inset-0 w-full h-full"
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                >
-                    <canvas
-                        ref={canvasRef}
-                        className="absolute inset-0 w-full h-full pointer-events-none"
-                        style={{ pointerEvents: mode === 'draw' || mode === 'erase' ? 'auto' : 'none' }}
-                    />
-
-                    {/* Tokens */}
-                    {tokens.map(token => (
-                        <div
-                            key={token.id}
-                            onMouseDown={(e) => {
-                                if (mode === 'move' && !isPlaying) {
-                                    e.stopPropagation();
-                                    setDraggedToken(token.id);
-                                }
-                            }}
-                            className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center font-bold text-xs shadow-lg transition-transform 
-                                ${mode === 'move' && !isPlaying ? 'cursor-grab active:cursor-grabbing hover:scale-110' : ''}
-                                ${token.type === 'home' ? 'bg-red-600 text-white ring-2 ring-white/50' :
-                                    token.type === 'away' ? 'bg-blue-600 text-white ring-2 ring-white/50' :
-                                        'bg-white text-gray-900 ring-2 ring-gray-300'}`}
-                            style={{
-                                left: `${(token.x / BOARD_WIDTH) * 100}%`,
-                                top: `${(token.y / BOARD_HEIGHT) * 100}%`,
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.4)'
-                            }}
+            {/* Main Board Area */}
+            <div className="flex flex-col lg:flex-row gap-6 w-full">
+                {/* Sidebar */}
+                <div className="w-full lg:w-64 flex flex-col gap-4 bg-[#121212] p-4 rounded-2xl border border-white/10 shadow-xl max-h-[600px]">
+                    <div className="flex bg-white/5 p-1 rounded-xl">
+                        <button
+                            onClick={() => setActiveSidebarTab('players')}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeSidebarTab === 'players' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-white'}`}
                         >
-                            {token.type !== 'ball' ? token.label : ''}
-                            {token.type === 'ball' && <div className="w-3 h-3 rounded-full bg-black/80 pattern-dots"></div>}
+                            Oyuncular
+                        </button>
+                        <button
+                            onClick={() => setActiveSidebarTab('equipment')}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeSidebarTab === 'equipment' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            Ekipmanlar
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        {activeSidebarTab === 'players' ? (
+                            students.map(s => (
+                                <button
+                                    key={s._id}
+                                    onClick={() => addToken('player', { label: s.fullName.charAt(0), studentId: s._id })}
+                                    className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-indigo-600/20 border border-white/5 hover:border-indigo-600/30 rounded-xl transition-all group"
+                                >
+                                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-xs text-white">
+                                        {s.fullName.charAt(0)}
+                                    </div>
+                                    <div className="flex flex-col items-start overflow-hidden">
+                                        <span className="text-[10px] font-bold text-white truncate w-full">{s.fullName}</span>
+                                        <span className="text-[8px] text-gray-500 uppercase tracking-widest">{s.position}</span>
+                                    </div>
+                                    <Plus className="w-3 h-3 ml-auto text-gray-600 group-hover:text-indigo-400" />
+                                </button>
+                            ))
+                        ) : (
+                            equipmentList.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => addToken('equipment', { equipmentType: item.id })}
+                                    className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-emerald-600/20 border border-white/5 hover:border-emerald-600/30 rounded-xl transition-all group"
+                                >
+                                    <div className="w-8 h-8 bg-black/40 rounded-lg flex items-center justify-center">
+                                        {item.icon}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-white">{item.label}</span>
+                                    <Plus className="w-3 h-3 ml-auto text-gray-600 group-hover:text-emerald-400" />
+                                </button>
+                            ))
+                        )}
+
+                        <div className="pt-4 border-t border-white/5">
+                            <button
+                                onClick={() => addToken('away', { label: 'A' })}
+                                className="w-full flex items-center gap-3 p-3 bg-red-600/10 hover:bg-red-600/20 border border-red-600/20 rounded-xl transition-all group"
+                            >
+                                <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                                <span className="text-[10px] font-black text-red-400 uppercase tracking-widest">Rakip Ekle</span>
+                            </button>
                         </div>
-                    ))}
+                    </div>
                 </div>
 
-                {/* Status Overlay */}
-                {(isRecording || isPlaying) && (
-                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`}></div>
-                        <span className="text-xs font-bold text-white uppercase tracking-wider">
-                            {isRecording ? 'KAYDEDİLİYOR' : 'OYNATILIYOR'}
-                        </span>
+                {/* Board Container */}
+                <div className="relative w-full max-w-[800px] aspect-[3/2] bg-[#1a1a1a] rounded-xl shadow-2xl border-4 border-[#252525] overflow-hidden select-none">
+                    <div
+                        ref={containerRef}
+                        className="absolute inset-0 w-full h-full"
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
+                    >
+                        <canvas
+                            ref={canvasRef}
+                            className="absolute inset-0 w-full h-full pointer-events-none"
+                            style={{ pointerEvents: mode === 'draw' || mode === 'erase' ? 'auto' : 'none' }}
+                        />
+
+                        {/* Tokens */}
+                        {tokens.map(token => (
+                            <div
+                                key={token.id}
+                                onMouseDown={(e) => {
+                                    if (mode === 'delete') {
+                                        setTokens(tokens.filter(t => t.id !== token.id));
+                                        return;
+                                    }
+                                    if (mode === 'move' && !isPlaying) {
+                                        e.stopPropagation();
+                                        setDraggedToken(token.id);
+                                    }
+                                }}
+                                className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center font-bold text-xs shadow-lg transition-transform 
+                                    ${mode === 'move' && !isPlaying ? 'cursor-grab active:cursor-grabbing hover:scale-110' : ''}
+                                    ${mode === 'delete' ? 'cursor-pointer hover:bg-red-600/50 hover:scale-110 ring-2 ring-red-500/50' : ''}
+                                    ${token.type === 'home' || token.type === 'player' ? 'bg-indigo-600 text-white ring-2 ring-white/50' :
+                                        token.type === 'away' ? 'bg-red-600 text-white ring-2 ring-white/50' :
+                                            token.type === 'equipment' ? 'bg-black/80 ring-2 ring-indigo-500/30' :
+                                                'bg-white text-gray-900 ring-2 ring-gray-300'}`}
+                                style={{
+                                    left: `${(token.x / BOARD_WIDTH) * 100}%`,
+                                    top: `${(token.y / BOARD_HEIGHT) * 100}%`,
+                                    boxShadow: '0 4px 6px rgba(0,0,0,0.4)',
+                                    zIndex: token.type === 'ball' ? 10 : 5
+                                }}
+                            >
+                                {token.type === 'player' || token.type === 'home' || token.type === 'away' ? token.label : ''}
+                                {token.type === 'ball' && <div className="w-3 h-3 rounded-full bg-black/80 pattern-dots"></div>}
+                                {token.type === 'equipment' && (
+                                    <div className="scale-75">
+                                        {token.equipmentType === 'cone' && <Circle className="w-5 h-5 text-orange-500 fill-orange-500/20" />}
+                                        {token.equipmentType === 'pole' && <Square className="w-5 h-5 text-yellow-500 fill-yellow-500/20" />}
+                                        {token.equipmentType === 'hurdle' && <X className="w-5 h-5 text-red-500" />}
+                                        {token.equipmentType === 'mannequin' && <Users className="w-5 h-5 text-blue-500" />}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
-                )}
+
+                    {/* Status Overlay */}
+                    {(isRecording || isPlaying) && (
+                        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`}></div>
+                            <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                {isRecording ? 'KAYDEDİLİYOR' : 'OYNATILIYOR'}
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
 
 

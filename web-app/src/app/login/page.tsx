@@ -137,9 +137,9 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    <div className="mt-10 text-center text-gray-600 text-xs font-medium">
-                        HENÜZ BİR AKADEMİYE ÜYE DEĞİL MİSİNİZ? <br />
-                        <a href="#" className="text-indigo-400 hover:underline font-black mt-2 inline-block">BİZE ULAŞIN</a>
+                    <div className="mt-10 text-center text-gray-600 text-xs font-medium uppercase tracking-widest">
+                        HENÜZ BİR HESABINIZ YOK MU? <br />
+                        <button onClick={() => router.push("/register")} className="text-indigo-400 hover:underline font-black mt-2 inline-block">ŞİMDİ KAYIT OL</button>
                     </div>
                 </div>
             </motion.div>

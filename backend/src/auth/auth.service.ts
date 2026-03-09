@@ -36,11 +36,7 @@ export class AuthService {
     }
 
     async register(createUserDto: CreateUserDto) {
-        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-        const newUser = await this.usersService.create({
-            ...createUserDto,
-            password: hashedPassword,
-        });
+        const newUser = await this.usersService.create(createUserDto);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, ...result } = (newUser as any).toObject ? (newUser as any).toObject() : newUser;
         return result;

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import {
     LogOut, Users, Award, MessageSquare, BarChart3, Bell, Settings, Menu, X,
     Plus, Edit, Save, ChevronRight, User, Filter, Search, CreditCard,
-    Utensils, Sparkles, Video, TrendingUp, UserPlus, Mail, Phone, DollarSign, Trash2, Presentation
+    Utensils, Sparkles, Video, TrendingUp, UserPlus, Mail, Phone, DollarSign, Trash2, Presentation, Calendar
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import PlayerCard from "@/components/PlayerCard";
 import TacticsBoard from "@/components/TacticsBoard";
@@ -57,6 +58,9 @@ export default function CoachDashboard() {
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [showCardModal, setShowCardModal] = useState(false);
     const [showNutritionModal, setShowNutritionModal] = useState(false);
+    const [statModalPlayer, setStatModalPlayer] = useState<Student | null>(null);
+    const [showStatDetailModal, setShowStatDetailModal] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -128,7 +132,9 @@ export default function CoachDashboard() {
     };
 
     const calculateRating = (stats: any) => {
+        if (!stats) return 0;
         const values = Object.values(stats) as number[];
+        if (values.length === 0) return 0;
         return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
     };
 
@@ -199,14 +205,16 @@ export default function CoachDashboard() {
 
     if (students.length === 0) {
         return (
-            <div className="min-h-screen bg-[#050510] flex items-center justify-center p-4">
-                <div className="text-center">
-                    <Users className="w-20 h-20 text-gray-700 mx-auto mb-6" />
-                    <h2 className="text-2xl font-bold text-white mb-2">Henüz Kayıtlı Oyuncu Yok</h2>
-                    <p className="text-gray-500 mb-8">Akademinizde henüz oyuncu bulunmuyor.</p>
+            <div className="min-h-screen bg-[#050510] flex items-center justify-center p-4 font-sans">
+                <div className="text-center max-w-sm">
+                    <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+                        <Users className="w-10 h-10 text-gray-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-3 tracking-tight">Sporcu Bulunamadı</h2>
+                    <p className="text-gray-500 mb-10 text-sm leading-relaxed">Akademinizde henüz kayıtlı sporcu yok. Analizlere başlamak için ilk takımınızı veya oyuncularınızı ekleyin.</p>
                     <button
                         onClick={handleLogout}
-                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold transition-all"
+                        className="w-full px-8 py-4 bg-indigo-600 text-white hover:bg-indigo-500 transition-all font-semibold rounded-2xl shadow-lg shadow-indigo-600/20"
                     >
                         Çıkış Yap
                     </button>
@@ -215,72 +223,82 @@ export default function CoachDashboard() {
         );
     }
 
+    const navigationItems = [
+        { id: "players", label: "Kadro & Oyuncular", icon: <Users className="w-4 h-4" /> },
+        { id: "stats", label: "Analiz Stüdyosu", icon: <BarChart3 className="w-4 h-4" /> },
+        { id: "parents", label: "Veliler", icon: <UserPlus className="w-4 h-4" /> },
+        { id: "tactics", label: "Taktik Tahtası", icon: <Presentation className="w-4 h-4" /> },
+        { id: "comments", label: "Notlar", icon: <MessageSquare className="w-4 h-4" /> },
+        { id: "nutrition", label: "Beslenme", icon: <Utensils className="w-4 h-4" /> },
+        { id: "ai", label: "AI Analiz", icon: <Sparkles className="w-4 h-4" /> },
+    ];
+
     return (
-        <div className="min-h-screen bg-[#050510] text-white">
-            {/* Sidebar - Always Visible */}
-            <aside className="fixed top-0 left-0 h-full w-80 bg-[#0a0a1a] border-r border-white/5 z-50 overflow-y-auto">
-                <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <Award className="w-6 h-6" />
+        <div className="min-h-screen bg-[#050510] text-[#E0E0E0] font-sans selection:bg-indigo-500/30">
+            {/* Top Navigation Bar */}
+            <nav className="sticky top-0 z-[60] bg-[#0A0B1E]/80 backdrop-blur-2xl border-b border-white/5 px-4 lg:px-10 py-4">
+                <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-4 lg:gap-8">
+                    {/* Brand */}
+                    <div className="flex items-center gap-2 lg:gap-3 shrink-0">
+                        <div className="w-8 h-8 lg:w-9 lg:h-9 bg-indigo-600 rounded-lg lg:rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+                            <Award className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
                         </div>
-                        <span className="text-xl font-bold tracking-tight">FUTKIDS</span>
+                        <span className="text-sm lg:text-lg font-black tracking-tighter text-white uppercase italic">FUTKIDS <span className="hidden sm:inline text-indigo-500/80 font-medium lowercase">analytics</span></span>
                     </div>
-                </div>
 
-                <div className="p-6 border-b border-white/5">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-xl font-bold shadow-lg">
-                            {user?.fullName?.charAt(0) || "C"}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-base truncate text-white">{user?.fullName}</div>
-                            <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Antrenör</div>
-                        </div>
-                    </div>
-                </div>
-
-                <nav className="p-4 space-y-1">
-                    <NavItem icon={<Users />} label="Oyuncular" active={activeTab === "players"} onClick={() => setActiveTab("players")} />
-                    <NavItem icon={<UserPlus />} label="Veliler" active={activeTab === "parents"} onClick={() => setActiveTab("parents")} />
-                    <NavItem icon={<BarChart3 />} label="İstatistikler" active={activeTab === "stats"} onClick={() => setActiveTab("stats")} />
-                    <NavItem icon={<MessageSquare />} label="Notlar" active={activeTab === "comments"} onClick={() => setActiveTab("comments")} />
-                    <NavItem icon={<Utensils />} label="Beslenme" active={activeTab === "nutrition"} onClick={() => setActiveTab("nutrition")} />
-                    <NavItem icon={<Presentation />} label="Taktik Tahtası" active={activeTab === "tactics"} onClick={() => setActiveTab("tactics")} />
-                    <NavItem icon={<Video />} label="AI Analiz" active={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
-                </nav>
-
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all font-medium"
-                    >
-                        <LogOut className="w-5 h-5" />
-                        <span className="text-sm">Çıkış Yap</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main */}
-            <div className="ml-80 min-h-screen">
-                <header className="sticky top-0 z-30 bg-[#050510]/90 backdrop-blur-xl border-b border-white/5">
-                    <div className="flex items-center justify-between px-6 py-4">
-                        <div>
-                            <h1 className="text-xl font-bold">Antrenör Paneli</h1>
-                            <p className="text-sm text-gray-500 font-medium">{filteredStudents.length} Oyuncu</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button className="relative p-2.5 hover:bg-white/5 rounded-xl">
-                                <Bell className="w-5 h-5" />
+                    {/* Desktop Menu */}
+                    <div className="hidden lg:flex items-center gap-1">
+                        {navigationItems.map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === item.id ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "text-gray-400 hover:text-white hover:bg-white/5"
+                                    }`}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
                             </button>
-                            <button className="p-2.5 hover:bg-white/5 rounded-xl">
-                                <Settings className="w-5 h-5" />
-                            </button>
-                        </div>
+                        ))}
                     </div>
-                </header>
 
-                <main className="p-6 max-w-7xl mx-auto">
+                    {/* Profile & Actions */}
+                    <div className="flex items-center gap-2 lg:gap-4">
+                        <div className="hidden md:flex flex-col items-end mr-2">
+                            <span className="text-xs font-bold text-white leading-none">{user?.fullName}</span>
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-1">Antrenör</span>
+                        </div>
+                        <button className="p-2 lg:p-2.5 bg-white/5 text-gray-400 hover:text-white border border-white/5 transition-all rounded-lg lg:rounded-xl">
+                            <Bell className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="p-2 lg:p-2.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/10 transition-all rounded-lg lg:rounded-xl"
+                            title="Çıkış Yap"
+                        >
+                            <LogOut className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile Menu (Scrollable) */}
+                <div className="lg:hidden flex items-center gap-1 mt-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                    {navigationItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${activeTab === item.id ? "bg-indigo-600 text-white" : "text-gray-400 bg-white/5"
+                                }`}
+                        >
+                            <span className="w-3 h-3 text-current">{item.icon}</span>
+                            <span>{item.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </nav>
+
+            {/* Content Wrapper */}
+            <div className="min-h-[calc(100vh-130px)] lg:min-h-[calc(100vh-74px)]">
+                <main className="p-4 lg:p-10 max-w-[1700px] mx-auto">
                     {activeTab === "players" && (
                         <PlayersTab
                             students={filteredStudents}
@@ -304,15 +322,13 @@ export default function CoachDashboard() {
                     {activeTab === "parents" && (
                         <ParentsTab user={user} students={students} />
                     )}
-                    {activeTab === "stats" && selectedStudent && (
+                    {activeTab === "stats" && (
                         <StatsTab
-                            student={selectedStudent}
-                            editMode={editMode}
-                            setEditMode={setEditMode}
-                            editedStats={editedStats}
-                            handleStatChange={handleStatChange}
-                            handleSaveStats={handleSaveStats}
-                            saving={saving}
+                            students={filteredStudents}
+                            onSelectPlayer={(s: Student) => {
+                                setStatModalPlayer(s);
+                                setShowStatDetailModal(true);
+                            }}
                             calculateRating={calculateRating}
                         />
                     )}
@@ -330,7 +346,9 @@ export default function CoachDashboard() {
                         <NutritionTab student={selectedStudent} />
                     )}
                     {activeTab === "tactics" && (
-                        <TacticsTab />
+                        <TacticsTab
+                            students={students}
+                        />
                     )}
                     {activeTab === "ai" && selectedStudent && (
                         <AITab student={selectedStudent} />
@@ -359,6 +377,15 @@ export default function CoachDashboard() {
                     </div>
                 </div>
             )}
+
+            {/* Stat Detail Modal */}
+            {showStatDetailModal && statModalPlayer && (
+                <StatDetailModal
+                    student={statModalPlayer}
+                    onClose={() => setShowStatDetailModal(false)}
+                    calculateRating={calculateRating}
+                />
+            )}
         </div>
     );
 }
@@ -367,12 +394,11 @@ function NavItem({ icon, label, active, onClick }: any) {
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${active ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" : "text-gray-400 hover:bg-white/5 hover:text-white"
+            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all font-bold text-sm tracking-tight ${active ? "bg-gray-900 text-white shadow-lg shadow-black/10" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                 }`}
         >
-            <div className="w-5 h-5">{icon}</div>
-            <span>{label}</span>
-            {active && <ChevronRight className="w-4 h-4 ml-auto" />}
+            <div className={`transition-colors ${active ? "text-white" : "text-gray-400 group-hover:text-gray-900"}`}>{icon}</div>
+            <span className="flex-1 text-left">{label}</span>
         </button>
     );
 }
@@ -387,17 +413,29 @@ function PlayersTab({
     const [parents, setParents] = useState<any[]>([]);
     const [loadingParents, setLoadingParents] = useState(false);
 
-    // New Player Form State
-    const [newPlayer, setNewPlayer] = useState({
-        id: "", // Add ID for edit mode
+    const initialPlayerState = {
+        id: "",
         fullName: "",
+        email: "",
+        phone: "",
         position: "ST",
         birthDate: "",
         height: "",
         weight: "",
         teamCategory: "",
-        parent: "" // Parent ID
-    });
+        parent: "",
+        stats: {
+            pace: 50,
+            shooting: 50,
+            passing: 50,
+            dribbling: 50,
+            defending: 50,
+            physical: 50
+        }
+    };
+
+    // New Player Form State
+    const [newPlayer, setNewPlayer] = useState(initialPlayerState);
 
     const fetchParentsForDropdown = async () => {
         if (loadingParents) return;
@@ -459,7 +497,7 @@ function PlayersTab({
             }
 
             setShowAddModal(false);
-            setNewPlayer({ id: "", fullName: "", position: "ST", birthDate: "", height: "", weight: "", teamCategory: "", parent: "" });
+            setNewPlayer(initialPlayerState);
             if (onRefresh) onRefresh();
         } catch (error) {
             console.error("Oyuncu işlemi başarısız:", error);
@@ -467,14 +505,37 @@ function PlayersTab({
         }
     };
 
-    const handleDeletePlayer = async (playerId: string, e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent card selection
+    const handleEditClick = (student: Student) => {
+        setNewPlayer({
+            id: student._id,
+            fullName: student.fullName,
+            email: (student as any).email || "",
+            phone: (student as any).phone || "",
+            position: student.position,
+            birthDate: student.birthDate ? new Date(student.birthDate).toISOString().split('T')[0] : "",
+            height: student.height?.toString() || "",
+            weight: student.weight?.toString() || "",
+            teamCategory: student.teamCategory || "",
+            parent: (student as any).parent?._id || (student as any).parent || "",
+            stats: (student as any).stats || {
+                pace: 50,
+                shooting: 50,
+                passing: 50,
+                dribbling: 50,
+                defending: 50,
+                physical: 50
+            }
+        });
+        fetchParentsForDropdown();
+        setShowAddModal(true);
+    };
+
+    const handleDeletePlayer = async (playerId: string) => {
         if (window.confirm("Bu oyuncuyu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.")) {
             try {
                 await api.delete(`/students/${playerId}`);
                 if (onRefresh) onRefresh();
 
-                // If deleted player was selected, deselect
                 if (selectedStudent?._id === playerId) {
                     setSelectedStudent(null);
                 }
@@ -489,255 +550,248 @@ function PlayersTab({
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold">Oyuncular</h2>
-                    <div className="text-sm text-gray-500">{students.length} Oyuncu</div>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="text-center lg:text-left">
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">PERSONEL <span className="text-indigo-500">REHBERİ</span></h2>
+                    <div className="text-sm text-gray-500 font-bold uppercase tracking-widest mt-2">{students.length} SPORCU KAYITLI</div>
                 </div>
                 <button
                     onClick={() => {
                         fetchParentsForDropdown();
                         setShowAddModal(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-all"
+                    className="w-full lg:w-auto flex items-center justify-center gap-4 px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-indigo-500 hover:shadow-[0_20px_40px_rgba(79,70,229,0.3)] shadow-2xl"
                 >
-                    <UserPlus className="w-5 h-5" />
-                    Oyuncu Ekle
+                    <UserPlus className="w-4 h-4" />
+                    YENİ SPORCU KAYDET
                 </button>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4 bg-[#0A0B1E] border border-white/5 p-4 rounded-[32px] shadow-2xl">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                     <input
                         type="text"
-                        placeholder="Oyuncu ara..."
+                        placeholder="Sporcu ara..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-500"
+                        className="w-full pl-12 pr-4 py-4 bg-black/20 border border-white/5 rounded-2xl text-white placeholder:text-gray-600 focus:border-indigo-500/50 focus:bg-black/40 focus:outline-none transition-all text-sm font-bold italic"
                     />
                 </div>
                 <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
+                    className="px-6 py-4 bg-black/20 border border-white/5 rounded-2xl text-white font-black text-[10px] uppercase tracking-widest focus:border-indigo-500/50 focus:bg-black/40 focus:outline-none transition-all cursor-pointer appearance-none"
                 >
-                    <option value="all" className="bg-[#0a0a1a] text-white">Tüm Kategoriler</option>
+                    <option value="all">TÜM KATEGORİLER</option>
                     {categories.map((cat: string) => (
-                        <option key={cat} value={cat} className="bg-[#0a0a1a] text-white">{cat}</option>
+                        <option key={cat} value={cat}>{cat} KADROSU</option>
                     ))}
                 </select>
             </div>
 
-            {/* Players Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {students.map((student: Student) => (
-                    <div
-                        key={student._id}
-                        className={`p-6 rounded-2xl border transition-all relative group ${selectedStudent?._id === student._id
-                            ? "bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20"
-                            : "bg-white/5 border-white/10 hover:bg-white/10"
-                            }`}
-                    >
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all z-10">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNewPlayer({
-                                        id: student._id,
-                                        fullName: student.fullName,
-                                        position: student.position,
-                                        birthDate: student.birthDate ? new Date(student.birthDate).toISOString().split('T')[0] : "",
-                                        height: student.height?.toString() || "",
-                                        weight: student.weight?.toString() || "",
-                                        teamCategory: student.teamCategory || "",
-                                        parent: student.parent?._id || student.parent || ""
-                                    });
-                                    fetchParentsForDropdown();
-                                    setShowAddModal(true);
-                                }}
-                                className="p-2 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-lg"
-                                title="Oyuncuyu Düzenle"
-                            >
-                                <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={(e) => handleDeletePlayer(student._id, e)}
-                                className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg"
-                                title="Oyuncuyu Sil"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
-
-                        <div className="flex items-start justify-between mb-4 cursor-pointer" onClick={() => setSelectedStudent(student)}>
-                            <div className="flex-1">
-                                <h3 className="font-bold text-lg">{student.fullName}</h3>
-                                <p className={`text-sm ${selectedStudent?._id === student._id ? "text-indigo-200" : "text-gray-400"}`}>
-                                    {student.position} • {student.teamCategory || "N/A"}
-                                </p>
-                            </div>
-                            <div className="text-right mr-8">
-                                <div className="text-3xl font-bold">{calculateRating(student.stats)}</div>
-                                <div className={`text-xs ${selectedStudent?._id === student._id ? "text-indigo-200" : "text-gray-400"}`}>OVR</div>
-                            </div>
-                        </div>
-                        <div className={`flex items-center gap-4 text-sm mb-4 ${selectedStudent?._id === student._id ? "text-indigo-200" : "text-gray-400"}`}>
-                            <span>{calculateAge(student.birthDate)} yaş</span>
-                            {student.height && <span>{student.height} cm</span>}
-                            {student.weight && <span>{student.weight} kg</span>}
-                        </div>
-                        <button
-                            onClick={() => {
-                                setSelectedStudent(student);
-                                setShowCardModal(true);
-                            }}
-                            className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all ${selectedStudent?._id === student._id ? "bg-white/20 hover:bg-white/30" : "bg-white/10 hover:bg-white/20"}`}
-                        >
-                            <CreditCard className="w-4 h-4" />
-                            Kartı Gör
-                        </button>
-                    </div>
-                ))}
-
-                {/* Empty State / Add Button */}
-                {students.length === 0 && (
-                    <div className="col-span-full py-12 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
-                        <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-500 mb-4">Gösterilecek oyuncu bulunamadı</p>
-                        <button
-                            onClick={() => {
-                                fetchParentsForDropdown();
-                                setShowAddModal(true);
-                            }}
-                            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold inline-flex items-center gap-2"
-                        >
-                            <UserPlus className="w-4 h-4" />
-                            Oyuncu Ekle
-                        </button>
-                    </div>
-                )}
+            {/* Players List View */}
+            <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
+                <div className="overflow-x-auto scrollbar-hide">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr className="border-b border-white/5 bg-black/20">
+                                <th className="px-8 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Sporcu</th>
+                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Mevki</th>
+                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Kategori</th>
+                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Yaş</th>
+                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Fizik</th>
+                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Reyting</th>
+                                <th className="px-8 py-6 text-right text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {students.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="px-8 py-20 text-center">
+                                        <Users className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                                        <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No matching athletes found</p>
+                                    </td>
+                                </tr>
+                            ) : (
+                                students.map((student: Student) => {
+                                    const rating = calculateRating(student.stats);
+                                    const ratingColor = rating >= 80 ? 'text-emerald-400' : rating >= 70 ? 'text-blue-400' : rating >= 60 ? 'text-amber-400' : 'text-gray-400';
+                                    return (
+                                        <motion.tr
+                                            key={student._id}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
+                                            onClick={() => setSelectedStudent(student)}
+                                        >
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-[#1A1B35] rounded-xl flex items-center justify-center text-lg font-black text-white italic border border-white/10 group-hover:border-indigo-500/50 transition-all">
+                                                        {student.fullName.charAt(0)}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-white text-sm group-hover:text-indigo-400 transition-colors">{student.fullName}</span>
+                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">{student.teamCategory || 'U15'} Takımı</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <span className="px-3 py-1 bg-white/5 border border-white/5 text-[10px] font-black text-gray-400 rounded-lg group-hover:text-white transition-colors">
+                                                    {student.position}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <div className="px-3 py-1 bg-white/5 border border-white/5 text-[10px] font-black text-gray-400 rounded-lg group-hover:text-white transition-colors">
+                                                    {student.teamCategory || 'U15'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <span className="text-sm font-bold text-gray-400 italic font-mono">{calculateAge(student.birthDate)}</span>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-[8px] font-black text-gray-600 uppercase">Boy</span>
+                                                        <span className="text-xs font-bold text-gray-400">{student.height || '--'}</span>
+                                                    </div>
+                                                    <div className="w-px h-4 bg-white/5" />
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-[8px] font-black text-gray-600 uppercase">Kilo</span>
+                                                        <span className="text-xs font-bold text-gray-400">{student.weight || '--'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <div className={`text-2xl font-black italic tracking-tighter ${ratingColor}`}>
+                                                    {rating}
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5 text-right" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex items-center justify-end gap-2 text-[10px] font-black tracking-widest uppercase">
+                                                    <button
+                                                        onClick={() => handleEditClick(student)}
+                                                        className="p-3 bg-white/5 text-gray-400 hover:text-white hover:bg-indigo-600 rounded-xl transition-all border border-white/5 hover:border-indigo-500 shadow-xl"
+                                                        title="DÜZENLE"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeletePlayer(student._id)}
+                                                        className="p-3 bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-white/5 hover:border-red-500"
+                                                        title="SİL"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </motion.tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            {/* Add Player Modal */}
+            {/* Empty State */}
+            {students.length === 0 && (
+                <div className="py-32 text-center bg-[#0A0B1E] border border-white/5 rounded-[32px]">
+                    <Users className="w-16 h-16 text-gray-700 mx-auto mb-6 opacity-20" />
+                    <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-sm">Veri Girişi Bekleniyor</p>
+                </div>
+            )}
+
+            {/* Registration/Edit Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-                    <div className="bg-[#0a0a1a] rounded-2xl p-6 max-w-2xl w-full border border-white/10 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-2xl font-bold">{newPlayer.id ? "Oyuncuyu Düzenle" : "Yeni Oyuncu Ekle"}</h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white">
-                                <X className="w-6 h-6" />
+                <div className="fixed inset-0 bg-[#050510]/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
+                    <div
+                        className="bg-[#0A0B1E] border border-white/10 rounded-3xl lg:rounded-[48px] p-6 lg:p-14 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_100px_rgba(0,0,0,0.5)] custom-scrollbar"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-12">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center">
+                                    <UserPlus className="w-7 h-7 text-white" />
+                                </div>
+                                <h3 className="text-3xl font-black text-white italic tracking-tight uppercase">
+                                    {newPlayer.id ? "PROFİL DÜZENLE" : "YENİ KAYIT"}
+                                </h3>
+                            </div>
+                            <button onClick={() => setShowAddModal(false)} className="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center transition-all">
+                                <X className="w-6 h-6 text-gray-400" />
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold mb-2">Ad Soyad *</label>
-                                <input
-                                    type="text"
-                                    value={newPlayer.fullName}
-                                    onChange={(e) => setNewPlayer({ ...newPlayer, fullName: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    placeholder="Oyuncu Adı Soyadı"
-                                />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            {/* Personal Info */}
+                            <div className="space-y-6">
+                                <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">Kişisel Bilgiler</h4>
+                                <div className="space-y-4">
+                                    <InputField label="AD SOYAD" value={newPlayer.fullName} onChange={(val: string) => setNewPlayer({ ...newPlayer, fullName: val })} placeholder="Sporcu Adı Soyadı" />
+                                    <InputField label="EMAIL" value={newPlayer.email} onChange={(val: string) => setNewPlayer({ ...newPlayer, email: val })} placeholder="ornek@mail.com" />
+                                    <InputField label="TELEFON" value={newPlayer.phone} onChange={(val: string) => setNewPlayer({ ...newPlayer, phone: val })} placeholder="05XX XXX XX XX" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <SelectField
+                                            label="MEVKİ"
+                                            value={newPlayer.position}
+                                            options={["GK", "CB", "LB", "RB", "CM", "CDM", "CAM", "LW", "RW", "ST"]}
+                                            onChange={(val: string) => setNewPlayer({ ...newPlayer, position: val })}
+                                        />
+                                        <SelectField
+                                            label="KATEGORİ"
+                                            value={newPlayer.teamCategory}
+                                            options={["U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16", "U17", "U18", "U19"]}
+                                            onChange={(val: string) => setNewPlayer({ ...newPlayer, teamCategory: val })}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Doğum Tarihi *</label>
-                                <input
-                                    type="date"
-                                    value={newPlayer.birthDate}
-                                    onChange={(e) => setNewPlayer({ ...newPlayer, birthDate: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Pozisyon *</label>
-                                <select
-                                    value={newPlayer.position}
-                                    onChange={(e) => setNewPlayer({ ...newPlayer, position: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                >
-                                    <option value="GK" className="bg-[#0a0a1a] text-white">GK (Kaleci)</option>
-                                    <option value="CB" className="bg-[#0a0a1a] text-white">CB (Stoper)</option>
-                                    <option value="LB" className="bg-[#0a0a1a] text-white">LB (Sol Bek)</option>
-                                    <option value="RB" className="bg-[#0a0a1a] text-white">RB (Sağ Bek)</option>
-                                    <option value="CM" className="bg-[#0a0a1a] text-white">CM (Orta Saha)</option>
-                                    <option value="CDM" className="bg-[#0a0a1a] text-white">CDM (Ön Libero)</option>
-                                    <option value="CAM" className="bg-[#0a0a1a] text-white">CAM (Ofansif Orta Saha)</option>
-                                    <option value="LW" className="bg-[#0a0a1a] text-white">LW (Sol Kanat)</option>
-                                    <option value="RW" className="bg-[#0a0a1a] text-white">RW (Sağ Kanat)</option>
-                                    <option value="ST" className="bg-[#0a0a1a] text-white">ST (Forvet)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Kategori</label>
-                                <select
-                                    value={newPlayer.teamCategory}
-                                    onChange={(e) => setNewPlayer({ ...newPlayer, teamCategory: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                >
-                                    <option value="" className="bg-[#0a0a1a] text-white">Seçiniz</option>
-                                    {categories.map((cat: string) => (
-                                        <option key={cat} value={cat} className="bg-[#0a0a1a] text-white">{cat}</option>
+                            {/* Performance Stats */}
+                            <div className="space-y-6">
+                                <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">Performans Verileri</h4>
+                                <div className="grid grid-cols-2 gap-6 bg-white/[0.02] border border-white/5 p-8 rounded-[32px]">
+                                    {Object.keys(newPlayer.stats || {}).map((stat) => (
+                                        <div key={stat} className="space-y-2">
+                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{stat === 'pace' ? 'HIZ' : stat === 'shooting' ? 'ŞUT' : stat === 'passing' ? 'PAS' : stat === 'dribbling' ? 'DRI' : stat === 'defending' ? 'DEF' : 'FİZ'}</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="99"
+                                                value={newPlayer.stats[stat as keyof typeof newPlayer.stats]}
+                                                onChange={(e) => {
+                                                    const val = Math.min(99, Math.max(0, parseInt(e.target.value) || 0));
+                                                    setNewPlayer({
+                                                        ...newPlayer,
+                                                        stats: { ...newPlayer.stats, [stat]: val }
+                                                    });
+                                                }}
+                                                className="w-full bg-[#1A1B35] border border-white/10 rounded-xl px-4 py-3 text-white font-black text-lg focus:outline-none focus:border-indigo-500 transition-all text-center"
+                                            />
+                                        </div>
                                     ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Veli</label>
-                                <select
-                                    value={newPlayer.parent}
-                                    onChange={(e) => setNewPlayer({ ...newPlayer, parent: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    disabled={loadingParents}
-                                >
-                                    <option value="" className="bg-[#0a0a1a] text-white">Veli Seçiniz</option>
-                                    {parents.map((p: any) => (
-                                        <option key={p._id} value={p._id} className="bg-[#0a0a1a] text-white">{p.fullName}</option>
-                                    ))}
-                                </select>
-                                {loadingParents && <span className="text-xs text-indigo-400">Veliler yükleniyor...</span>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Boy (cm)</label>
-                                <input
-                                    type="number"
-                                    value={newPlayer.height}
-                                    onChange={(e) => setNewPlayer({ ...newPlayer, height: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    placeholder="175"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Kilo (kg)</label>
-                                <input
-                                    type="number"
-                                    value={newPlayer.weight}
-                                    onChange={(e) => setNewPlayer({ ...newPlayer, weight: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    placeholder="70"
-                                />
+                                </div>
+                                <div className="bg-indigo-600/10 border border-indigo-600/20 rounded-2xl p-4 text-center">
+                                    <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-1">Tahmini Reyting</span>
+                                    <span className="text-3xl font-black text-white italic tracking-tighter">{calculateRating(newPlayer.stats)}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex gap-6 mt-14">
                             <button
                                 onClick={() => setShowAddModal(false)}
-                                className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl font-semibold transition-all"
+                                className="flex-1 px-8 py-5 bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all"
                             >
-                                İptal
+                                İPTAL
                             </button>
                             <button
                                 onClick={handleAddPlayer}
-                                className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-all"
+                                className="flex-1 px-8 py-5 bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_20px_40px_rgba(79,70,229,0.2)] hover:shadow-[0_20px_40px_rgba(79,70,229,0.4)] rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all"
                             >
-                                Kaydet
+                                {newPlayer.id ? "PROFİLİ GÜNCELLE" : "SPORCUYU KAYDET"}
                             </button>
                         </div>
                     </div>
@@ -747,73 +801,410 @@ function PlayersTab({
     );
 }
 
-
-function StatsTab({ student, editMode, setEditMode, editedStats, handleStatChange, handleSaveStats, saving, calculateRating }: any) {
+// Sub-components for better organization
+function StatCell({ value }: { value: number }) {
+    const colorClass = value >= 80 ? 'text-emerald-400' : value >= 60 ? 'text-amber-400' : 'text-gray-400';
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">{student.fullName} - İstatistikler</h2>
-                {!editMode ? (
+        <td className="px-6 py-5 text-center">
+            <span className={`text-sm font-black italic shadow-sm ${colorClass}`}>{value}</span>
+        </td>
+    );
+}
+
+function InputField({ label, value, onChange, placeholder, type = "text" }: any) {
+    return (
+        <div className="space-y-2">
+            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">{label}</label>
+            <input
+                type={type}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                className="w-full bg-[#1A1B35] border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition-all placeholder:text-gray-700"
+            />
+        </div>
+    );
+}
+
+function SelectField({ label, value, options, onChange }: any) {
+    return (
+        <div className="space-y-2">
+            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">{label}</label>
+            <select
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full bg-[#1A1B35] border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+            >
+                {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+        </div>
+    );
+}
+
+
+function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const playersPerPage = 20;
+
+    const categories = ["U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16", "U17", "U18", "U19"];
+
+    const categoryData = categories.map(cat => {
+        const catPlayers = students.filter((s: Student) => s.teamCategory === cat);
+        const avgOVR = catPlayers.length > 0
+            ? Math.round(catPlayers.reduce((acc: number, s: Student) => acc + calculateRating(s.stats), 0) / catPlayers.length)
+            : 0;
+        return { name: cat, count: catPlayers.length, avgOVR };
+    }).filter(c => c.count > 0);
+
+    const filteredPlayers = selectedCategory
+        ? students.filter((s: Student) => s.teamCategory === selectedCategory)
+        : [];
+
+    const indexOfLastPlayer = currentPage * playersPerPage;
+    const indexOfFirstPlayer = indexOfLastPlayer - playersPerPage;
+    const currentPlayers = filteredPlayers.slice(indexOfFirstPlayer, indexOfLastPlayer);
+    const totalPages = Math.ceil(filteredPlayers.length / playersPerPage);
+
+    if (!selectedCategory) {
+        return (
+            <div className="space-y-12 animate-in fade-in duration-700">
+                <div className="flex flex-col gap-2">
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">TAKIM <span className="text-indigo-500">ÖZETİ</span></h2>
+                    <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Yaş kategorilerine göre genel performans analizi</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                    {categoryData.length === 0 ? (
+                        <div className="col-span-full py-32 text-center bg-[#0A0B1E] border border-white/5 rounded-[40px]">
+                            <p className="text-gray-500 font-black uppercase tracking-[0.2em] text-sm italic">VERİ AKIŞI BEKLENİYOR</p>
+                        </div>
+                    ) : (
+                        categoryData.map((cat) => (
+                            <motion.div
+                                key={cat.name}
+                                whileHover={{ y: -10, boxShadow: "0 40px 80px rgba(0,0,0,0.5)" }}
+                                onClick={() => {
+                                    setSelectedCategory(cat.name);
+                                    setCurrentPage(1);
+                                }}
+                                className="group bg-[#0A0B1E] border border-white/5 p-8 lg:p-10 rounded-[40px] transition-all cursor-pointer relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 blur-3xl -z-10 group-hover:bg-indigo-600/10 transition-colors"></div>
+
+                                <div className="flex items-center justify-between mb-8 lg:mb-12">
+                                    <div className="w-16 h-16 bg-[#1A1B35] border border-white/10 rounded-2xl flex items-center justify-center text-3xl font-black text-white italic shadow-2xl transition-transform group-hover:scale-110 group-hover:rotate-3">
+                                        {cat.name}
+                                    </div>
+                                    <div className="px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/10">
+                                        AKTİF
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-end">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Kadro Boyutu</span>
+                                            <span className="text-3xl font-black text-white italic">{cat.count}</span>
+                                        </div>
+                                        <div className="text-right flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Ort. Reyting</span>
+                                            <span className="text-3xl font-black text-white italic border-b-4 border-indigo-500/20 leading-none">{cat.avgOVR}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${cat.avgOVR}%` }}
+                                            className="h-full bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-10 pt-8 border-t border-white/5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all">
+                                    <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">DETAYLI ANALİZİ GÖR</span>
+                                    <ChevronRight className="w-5 h-5 text-indigo-400" />
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
+                </div>
+
+                {/* Comparison Section */}
+                <div className="mt-20 bg-[#0A0B1E] border border-white/5 rounded-[50px] p-16 shadow-2xl overflow-hidden relative border-t-4 border-indigo-600/30">
+                    <div className="max-w-xl relative z-10">
+                        <h3 className="text-4xl font-black text-white tracking-tight mb-4 leading-none uppercase italic">KATEGORİ <span className="text-indigo-500">KIYASLAMASI</span></h3>
+                        <p className="text-lg text-gray-500 font-bold mb-12 italic leading-relaxed">
+                            Takımlarınızı teknik disiplinlere göre karşılaştırın ve gelişim fırsatlarını belirleyin.
+                        </p>
+                        <div className="flex gap-4">
+                            <button className="px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:shadow-[0_0_30px_rgba(79,70,229,0.4)] hover:-translate-y-1 transition-all">KIYASLAMAYI BAŞLAT</button>
+                            <button className="px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all">VERİLERİ DIŞA AKTAR</button>
+                        </div>
+                    </div>
+
+                    <div className="absolute right-[-5%] top-[-5%] opacity-5 pointer-events-none transform rotate-12">
+                        <BarChart3 className="w-[600px] h-[600px] text-white" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-10 animate-in fade-in duration-700">
+            <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
+                <div className="flex items-center gap-8">
                     <button
-                        onClick={() => setEditMode(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-all"
+                        onClick={() => setSelectedCategory(null)}
+                        className="w-16 h-16 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl transition-all flex items-center justify-center group shadow-2xl"
                     >
-                        <Edit className="w-4 h-4" />
-                        Düzenle
+                        <ChevronRight className="w-6 h-6 rotate-180 transition-transform group-hover:-translate-x-1" />
                     </button>
-                ) : (
-                    <div className="flex gap-2">
+                    <div>
+                        <h2 className="text-3xl font-black text-white tracking-tight uppercase italic leading-none">{selectedCategory} <span className="text-indigo-500">AKADEMİSİ</span></h2>
+                        <p className="text-sm text-gray-500 font-bold mt-2 uppercase tracking-widest">Aktif Kadro / {filteredPlayers.length} Analiz Edilen Sporcu</p>
+                    </div>
+                </div>
+
+                {totalPages > 1 && (
+                    <div className="flex items-center gap-2 bg-black/20 border border-white/5 p-2 rounded-2xl">
                         <button
-                            onClick={() => setEditMode(false)}
-                            className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-xl font-semibold transition-all"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="p-3 bg-white/5 border border-white/5 hover:bg-white/10 rounded-xl disabled:opacity-10 transition-all"
                         >
-                            İptal
+                            <ChevronRight className="w-5 h-5 rotate-180" />
                         </button>
+                        <div className="px-8 text-xs font-black text-white tracking-[0.2em] italic uppercase">
+                            SAYFA {currentPage} / {totalPages}
+                        </div>
                         <button
-                            onClick={handleSaveStats}
-                            disabled={saving}
-                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold transition-all disabled:opacity-50"
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-3 bg-white/5 border border-white/5 hover:bg-white/10 rounded-xl disabled:opacity-10 transition-all"
                         >
-                            <Save className="w-4 h-4" />
-                            {saving ? "Kaydediliyor..." : "Kaydet"}
+                            <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
                 )}
             </div>
 
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-6 text-center">
-                <div className="text-sm font-semibold text-white/70 uppercase mb-2">Overall Rating</div>
-                <div className="text-6xl font-bold text-white">{calculateRating(editedStats)}</div>
-                <div className="text-sm text-white/70 mt-2">6 özellik ortalaması</div>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pb-20">
+                {currentPlayers.map((student: Student) => (
+                    <motion.div
+                        key={student._id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ y: -10, boxShadow: "0 30px 60px rgba(0,0,0,0.5)" }}
+                        onClick={() => onSelectPlayer(student)}
+                        className="bg-[#0A0B1E] border border-white/5 p-6 lg:p-8 group transition-all cursor-pointer relative rounded-[32px] overflow-hidden shadow-2xl"
+                    >
+                        <div className="flex items-start justify-between mb-8">
+                            <div className="w-14 h-14 bg-[#1A1B35] border border-white/10 flex items-center justify-center font-black text-xl text-white italic rounded-2xl group-hover:bg-indigo-600 group-hover:rotate-6 transition-all shadow-2xl">
+                                {student.fullName.charAt(0)}
+                            </div>
+                            <div className="text-right bg-black/20 border border-white/5 px-4 py-2 rounded-2xl group-hover:bg-indigo-600 transition-all">
+                                <div className="text-2xl font-black text-white italic tracking-tighter leading-none">
+                                    {calculateRating(student.stats)}
+                                </div>
+                                <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1 group-hover:text-white/40">REYTING</div>
+                            </div>
+                        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.entries(editedStats).map(([key, value]: [string, any]) => (
-                    <div key={key} className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-sm font-semibold text-gray-400 uppercase">{key}</span>
-                            {editMode ? (
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="99"
-                                    value={value}
-                                    onChange={(e) => handleStatChange(key, parseInt(e.target.value) || 0)}
-                                    className="w-20 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-center font-bold"
-                                />
-                            ) : (
-                                <span className="text-2xl font-bold">{value}</span>
-                            )}
+                        <div className="space-y-1">
+                            <h3 className="text-lg font-black text-white leading-none truncate group-hover:text-indigo-400 transition-colors uppercase italic">
+                                {student.fullName}
+                            </h3>
+                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2 bg-white/5 inline-block px-2 py-1 rounded-lg">
+                                {student.position}
+                            </p>
                         </div>
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all"
-                                style={{ width: `${value}%` }}
-                            />
+
+                        <div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-3 gap-2">
+                            {Object.entries(student.stats).slice(0, 3).map(([key, val]: [string, any]) => (
+                                <div key={key} className="flex flex-col">
+                                    <span className="text-sm font-black text-white border-b-2 border-indigo-500/10 italic leading-none mb-1">{val}</span>
+                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">{key === 'pace' ? 'HIZ' : key === 'shooting' ? 'ŞUT' : 'PAS'}</span>
+                                </div>
+                            ))}
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
+        </div>
+    );
+}
+
+function StatDetailModal({ student, onClose, calculateRating }: any) {
+    const mockSeasonStats = [
+        { label: "OYNANAN MAÇ", value: 14, icon: <Award className="w-4 h-4 text-emerald-400" /> },
+        { label: "TOPLAM DAKİKA", value: "1.120", icon: <TrendingUp className="w-4 h-4 text-indigo-400" /> },
+        { label: "SKOR KATKISI", value: 13, icon: <Sparkles className="w-4 h-4 text-amber-400" /> },
+        { label: "ANALİZ SKORU", value: 8.2, icon: <BarChart3 className="w-4 h-4 text-blue-400" /> },
+    ];
+
+    return (
+        <div className="fixed inset-0 bg-[#050510]/95 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 lg:p-10 animate-in fade-in zoom-in duration-300" onClick={onClose}>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="bg-[#0A0B1E] w-full max-w-[1500px] h-full lg:h-[85vh] overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row relative rounded-3xl lg:rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/5"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
+                {/* Close Button */}
+                <button onClick={onClose} className="absolute top-4 right-4 lg:top-8 lg:right-8 w-10 h-10 lg:w-12 lg:h-12 bg-white/5 border border-white/10 text-gray-400 hover:text-white rounded-xl lg:rounded-2xl transition-all z-50 flex items-center justify-center shadow-2xl">
+                    <X className="w-5 h-5 lg:w-6 lg:h-6" />
+                </button>
+
+                {/* Left Side: Profile Information */}
+                <div className="w-full lg:w-[32%] bg-[#0D0E25] p-10 lg:p-14 flex flex-col border-r border-white/5 overflow-y-auto custom-scrollbar">
+                    <div className="mb-12">
+                        <div className="flex items-center gap-5 mb-10">
+                            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-3xl font-black text-white italic shadow-2xl">
+                                {student.fullName.charAt(0)}
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-1">PROGRESİF KAYIT</span>
+                                <h2 className="text-2xl font-black text-white tracking-tight leading-none uppercase italic">{student.fullName}</h2>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col mb-10">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">PERFORMANS ENDEKSİ</span>
+                            <div className="flex items-baseline gap-4">
+                                <span className="text-6xl lg:text-8xl font-black text-white italic tracking-tighter leading-none shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                                    {calculateRating(student.stats)}
+                                </span>
+                                <span className="text-sm font-black text-emerald-400 uppercase tracking-widest">+2.4% Artış</span>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <span className="px-5 py-2.5 bg-indigo-600 text-white text-[10px] font-black tracking-widest uppercase rounded-xl shadow-lg shadow-indigo-600/20">{student.position}</span>
+                            <span className="px-5 py-2.5 bg-white/5 border border-white/10 text-gray-400 text-[10px] font-black tracking-widest uppercase rounded-xl">{student.teamCategory || "U15"} KADROSU</span>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 space-y-1">
+                        <ProfileRowVeo label="AKADEMİ_KAYNAĞI" value={student.academy?.name || "FUTKIDS"} />
+                        <ProfileRowVeo label="GELİŞİM_DURUMU" value="POTANSİYEL_YÜKSEK" />
+                        <ProfileRowVeo label="ANALİZ_PERİYODU" value="2024_Q1" />
+                        <ProfileRowVeo label="VERİ_DOĞRULAMA" value="ONAYLANDI" />
+                    </div>
+
+                    <div className="mt-12">
+                        <button className="w-full py-5 bg-white/5 border border-white/10 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 hover:shadow-2xl transition-all">
+                            STUDIO RAPORU OLUŞTUR
+                        </button>
+                    </div>
+                </div>
+
+                {/* Right Side: Analytics & Matrix */}
+                <div className="flex-1 p-10 lg:p-14 overflow-y-auto bg-[#0A0B1E] custom-scrollbar">
+                    <div className="space-y-12">
+                        {/* Summary Modules */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {mockSeasonStats.map((stat, i) => (
+                                <div key={i} className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] group hover:bg-white/[0.04] hover:-translate-y-1 transition-all">
+                                    <div className="w-12 h-12 bg-indigo-600/10 rounded-2xl flex items-center justify-center mb-6 border border-indigo-600/20 group-hover:scale-110 group-hover:rotate-3 transition-all text-indigo-400">
+                                        {stat.icon}
+                                    </div>
+                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{stat.label}</div>
+                                    <div className="text-2xl font-black text-white italic leading-none">{stat.value}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Analysis Grid */}
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                            {/* Performance Radar Placeholder */}
+                            <div className="bg-[#0D0E25] border border-white/5 rounded-[40px] p-10 shadow-2xl flex flex-col">
+                                <div className="flex items-center justify-between mb-12">
+                                    <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">TEKNİK ANALİZ MATRİSİ</h3>
+                                    <BarChart3 className="w-5 h-5 text-gray-700" />
+                                </div>
+                                <div className="flex-1 flex flex-wrap gap-5 items-center justify-center p-6">
+                                    {Object.entries(student.stats).map(([key, value]: [string, any]) => (
+                                        <div key={key} className="flex flex-col items-center bg-white/5 border border-white/5 px-8 py-5 rounded-3xl min-w-[130px] group hover:bg-indigo-600 transition-all">
+                                            <span className="text-[9px] font-black text-gray-500 group-hover:text-white/40 uppercase mb-1">{key === 'pace' ? 'HIZ' : key === 'shooting' ? 'ŞUT' : key === 'passing' ? 'PAS' : key === 'dribbling' ? 'DRI' : key === 'defending' ? 'DEF' : 'FIZ'}</span>
+                                            <span className="text-2xl font-black text-white italic">{value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Observations & Progress */}
+                            <div className="space-y-10">
+                                <div className="bg-[#0D0E25] border border-white/5 rounded-[40px] p-10 shadow-2xl">
+                                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-10">GÖZLEM NOTLARI</h3>
+                                    <div className="space-y-6">
+                                        <div className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-3xl">
+                                            <p className="text-xs font-bold text-emerald-400 italic leading-relaxed">
+                                                "Mükemmel toparlanma hızı ve saha içi farkındalık."
+                                            </p>
+                                        </div>
+                                        <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl">
+                                            <p className="text-xs font-bold text-indigo-400 italic leading-relaxed">
+                                                "Son bölgede karar verme kalitesi yaş grubunun üzerinde."
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-[#0D0E25] border border-white/5 rounded-[40px] p-10 shadow-2xl">
+                                    <div className="flex items-center justify-between mb-10">
+                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">GELİŞİM GRAFİĞİ</h3>
+                                        <TrendingUp className="w-4 h-4 text-gray-700" />
+                                    </div>
+                                    <div className="flex items-end gap-3 h-24">
+                                        {[4, 6, 8, 5, 9, 8].map((v, i) => (
+                                            <motion.div
+                                                key={i}
+                                                initial={{ height: 0 }}
+                                                animate={{ height: `${v * 10}%` }}
+                                                className={`flex-1 rounded-t-xl ${i === 5 ? 'bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-white/5'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="flex justify-between mt-8">
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">SON 6 MAÇ PERFORMANSI</span>
+                                        <span className="text-xs font-black text-emerald-400 italic">+12% ARTIŞ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
+function ProfileRowVeo({ label, value }: { label: string, value: string }) {
+    return (
+        <div className="flex items-center justify-between w-full py-5 border-b border-white/5">
+            <span className="text-[9px] font-black text-gray-500 tracking-widest uppercase">{label}</span>
+            <span className="text-xs font-black text-white italic uppercase truncate ml-4">{value}</span>
+        </div>
+    );
+}
+
+function ProfileRowBw({ label, value }: { label: string, value: string }) {
+    return (
+        <div className="flex items-center justify-between w-full py-6 border-b-2 border-black/10">
+            <span className="text-xs font-black text-black/30 tracking-widest uppercase">{label}</span>
+            <span className="text-lg font-black text-black italic uppercase">{value}</span>
+        </div>
+    );
+}
+
+function ProfileRow({ label, value }: { label: string, value: string }) {
+    return (
+        <div className="flex items-center justify-between w-full py-4 border-b border-white/5">
+            <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase">{label}</span>
+            <span className="text-sm font-black text-white italic uppercase">{value}</span>
         </div>
     );
 }
@@ -822,53 +1213,71 @@ function CommentsTab({ student, newComment, setNewComment, handleAddComment, sav
     const comments = student.coachComments || [];
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold">{student.fullName} - Notlar</h2>
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex flex-col gap-2 mb-8">
+                <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">ANTRENÖR <span className="text-indigo-500">NOTLARI</span></h2>
+                <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Gelişim takibi ve özel gözlemler</p>
+            </div>
 
-            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                <h3 className="font-bold mb-4">Yeni Not Ekle</h3>
+            <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px] rounded-full -mr-32 -mt-32 transition-all group-hover:bg-indigo-600/10" />
+                <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-8">YENİ GÖZLEM EKLE</h3>
                 <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Oyuncu hakkında notunuzu yazın..."
-                    className="w-full h-32 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-gray-500 resize-none focus:outline-none focus:border-indigo-500"
+                    placeholder="Sporcu teknik kapasitesi, fiziksel durumu veya mental gelişimi hakkında notunuzu buraya yazın..."
+                    className="w-full h-40 px-8 py-6 bg-black/20 border border-white/5 rounded-[32px] text-white placeholder:text-gray-600 resize-none focus:outline-none focus:border-indigo-500/50 focus:bg-black/40 transition-all font-bold text-sm italic shadow-inner"
                 />
-                <button
-                    onClick={handleAddComment}
-                    disabled={saving || !newComment.trim()}
-                    className="mt-4 flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-all disabled:opacity-50"
-                >
-                    <Plus className="w-4 h-4" />
-                    {saving ? "Ekleniyor..." : "Not Ekle"}
-                </button>
+                <div className="mt-8 flex justify-end">
+                    <button
+                        onClick={handleAddComment}
+                        disabled={saving || !newComment.trim()}
+                        className="group flex items-center gap-4 px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-indigo-500 hover:shadow-[0_20px_40px_rgba(79,70,229,0.3)] disabled:opacity-30"
+                    >
+                        <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
+                        {saving ? "KAYDEDİLİYOR..." : "NOTU SİSTEME İŞLE"}
+                    </button>
+                </div>
             </div>
 
-            <div className="space-y-4">
-                <h3 className="font-bold">Tüm Notlar ({comments.length})</h3>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between px-4">
+                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">GEÇMİŞ KAYITLAR ({comments.length})</h3>
+                </div>
                 {comments.length === 0 ? (
-                    <div className="bg-white/5 rounded-2xl p-12 border border-white/10 text-center">
-                        <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-500">Henüz not bulunmuyor</p>
+                    <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-20 text-center shadow-2xl">
+                        <MessageSquare className="w-16 h-16 text-gray-800 mx-auto mb-6" />
+                        <p className="text-gray-600 font-black uppercase tracking-widest text-xs italic">Henüz bir veri girişi yapılmamış</p>
                     </div>
                 ) : (
                     comments.map((comment: any, idx: number) => (
-                        <div key={idx} className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                            <div className="flex gap-4">
-                                <div className="w-12 h-12 bg-indigo-600/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <User className="w-6 h-6 text-indigo-400" />
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="bg-[#0A0B1E] border border-white/5 rounded-[32px] p-8 lg:p-10 hover:border-indigo-500/20 transition-all group"
+                        >
+                            <div className="flex gap-8">
+                                <div className="w-16 h-16 bg-[#1A1B35] rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/5 shadow-2xl group-hover:bg-indigo-600 transition-all">
+                                    <User className="w-7 h-7 text-indigo-400 group-hover:text-white" />
                                 </div>
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="font-bold text-white">{comment.coach?.fullName || user.fullName}</span>
-                                        <span className="text-xs text-gray-600">•</span>
-                                        <span className="text-sm text-gray-500">
-                                            {new Date(comment.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                        </span>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-4">
+                                            <span className="font-black text-white italic uppercase tracking-tight">{comment.coach?.fullName || user.fullName}</span>
+                                            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                                {new Date(comment.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <p className="text-gray-300 leading-relaxed">{comment.comment}</p>
+                                    <p className="text-gray-400 font-bold italic leading-relaxed text-sm bg-black/10 p-6 rounded-2xl border border-white/[0.02]">
+                                        "{comment.comment}"
+                                    </p>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))
                 )}
             </div>
@@ -919,235 +1328,241 @@ function NutritionTab({ student }: any) {
             });
             setShowModal(false);
             fetchPlans();
-            alert("Beslenme programı oluşturuldu!");
         } catch (error) {
             console.error("Program oluşturulamadı:", error);
-            alert("Hata oluştu!");
         }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">{student.fullName} - Beslenme Programı</h2>
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                <div className="flex flex-col gap-2">
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">BESLENME <span className="text-emerald-500">PROGRAMI</span></h2>
+                    <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Performans odaklı diyet yönetimi</p>
+                </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold transition-all"
+                    className="w-full lg:w-auto group flex items-center justify-center gap-4 px-10 py-5 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-emerald-500 hover:shadow-[0_20px_40px_rgba(16,185,129,0.3)] shadow-2xl"
                 >
-                    <Plus className="w-4 h-4" />
-                    Program Oluştur
+                    <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
+                    YENİ PROGRAM OLUŞTUR
                 </button>
             </div>
 
             {loading ? (
-                <div className="flex justify-center py-12">
-                    <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+                <div className="flex justify-center py-20">
+                    <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
                 </div>
             ) : plans.length === 0 ? (
-                <div className="bg-white/5 rounded-2xl p-12 border border-white/10 text-center">
-                    <Utensils className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-2">Henüz beslenme programı oluşturulmamış</p>
-                    <p className="text-sm text-gray-600">Oyuncunuz için özel beslenme programı oluşturabilirsiniz</p>
+                <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-24 text-center shadow-2xl">
+                    <div className="w-24 h-24 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-10 border border-emerald-500/20">
+                        <Utensils className="w-12 h-12 text-emerald-500" />
+                    </div>
+                    <p className="text-white font-black uppercase tracking-[0.3em] text-sm mb-4 italic">VERİ BULUNAMADI</p>
+                    <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">Sporcu için henüz aktif bir beslenme planı oluşturulmamış</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-10">
                     {plans.map((plan) => (
-                        <div key={plan._id} className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                            <div className="flex items-start justify-between mb-4">
-                                <div>
-                                    <h3 className="text-xl font-bold mb-2">{plan.title}</h3>
-                                    <p className="text-sm text-gray-400">
-                                        {new Date(plan.startDate).toLocaleDateString('tr-TR')} - {new Date(plan.endDate).toLocaleDateString('tr-TR')}
-                                    </p>
-                                </div>
-                            </div>
-                            {plan.notes && (
-                                <p className="text-gray-300 mb-4">{plan.notes}</p>
-                            )}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {Object.entries(plan.dailyPlans || {}).map(([day, meals]: [string, any]) => (
-                                    <div key={day} className="bg-white/5 rounded-xl p-4">
-                                        <h4 className="font-semibold mb-2 capitalize">{day}</h4>
-                                        <div className="space-y-1 text-sm text-gray-400">
-                                            <p>🌅 Kahvaltı: {meals.breakfast || "-"}</p>
-                                            <p>🌞 Öğle: {meals.lunch || "-"}</p>
-                                            <p>🌙 Akşam: {meals.dinner || "-"}</p>
-                                            <p>🍎 Atıştırmalık: {meals.snacks || "-"}</p>
+                        <div key={plan._id} className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-600/5 blur-[120px] rounded-full -mr-48 -mt-48 transition-all group-hover:bg-emerald-600/10" />
+
+                            <div className="relative z-10">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12 pb-8 border-b border-white/5">
+                                    <div className="text-center lg:text-left">
+                                        <h3 className="text-2xl font-black text-white italic tracking-tight uppercase mb-4 lg:mb-2">{plan.title}</h3>
+                                        <div className="flex items-center justify-center lg:justify-start gap-4">
+                                            <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                                                <Calendar className="w-3 h-3 text-emerald-500" />
+                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                    {new Date(plan.startDate).toLocaleDateString('tr-TR')} - {new Date(plan.endDate).toLocaleDateString('tr-TR')}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                ))}
+                                    {plan.notes && (
+                                        <div className="w-full lg:max-w-md bg-black/20 p-6 rounded-3xl border border-white/5 italic text-sm text-gray-400 font-bold text-center lg:text-left">
+                                            "{plan.notes}"
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                                    {Object.entries(plan.dailyPlans || {}).map(([day, meals]: [string, any], idx: number) => (
+                                        <motion.div
+                                            key={day}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className="bg-black/20 border border-white/5 rounded-[32px] p-8 hover:border-emerald-500/20 transition-all hover:-translate-y-2 group/card"
+                                        >
+                                            <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-8 border-b border-emerald-500/10 pb-4 inline-block">{day}</h4>
+                                            <div className="space-y-6">
+                                                <MealItem label="KAHVALTI" content={meals.breakfast} icon="🌅" />
+                                                <MealItem label="ÖĞLE YEMEĞİ" content={meals.lunch} icon="🌞" />
+                                                <MealItem label="AKŞAM YEMEĞİ" content={meals.dinner} icon="🌙" />
+                                                <MealItem label="ARA ÖĞÜN" content={meals.snacks} icon="🍎" />
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Create Plan Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-                    <div className="bg-[#0a0a1a] rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-white/10" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-2xl font-bold mb-6">Yeni Beslenme Programı</h3>
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 lg:p-10" onClick={() => setShowModal(false)}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 40 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-[#050614] border border-white/10 rounded-3xl lg:rounded-[50px] p-6 lg:p-16 max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-16">
+                            <div className="flex flex-col gap-2">
+                                <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase">PROGRAM <span className="text-emerald-500">MİMARI</span></h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em]">Sporcu için en iyisini tasarlayın</p>
+                            </div>
+                            <button onClick={() => setShowModal(false)} className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center hover:bg-red-500/20 transition-all text-gray-500 hover:text-red-500">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
 
-                        <div className="space-y-4 mb-6">
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Program Adı</label>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-16">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4">PROGRAMIN ADI</label>
                                 <input
                                     type="text"
                                     value={newPlan.title}
                                     onChange={(e) => setNewPlan({ ...newPlan, title: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-emerald-500"
-                                    placeholder="Örn: Ocak Ayı Beslenme Programı"
+                                    className="w-full px-10 py-6 bg-white/5 border border-white/10 rounded-[30px] text-white focus:border-emerald-500 transition-all focus:bg-white/10 font-black italic uppercase tracking-tighter"
+                                    placeholder="Örn: OCAK AYI GÜÇ PROGRAMI"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-semibold mb-2">Başlangıç Tarihi</label>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4">BAŞLANGIÇ</label>
                                     <input
                                         type="date"
                                         value={newPlan.startDate}
                                         onChange={(e) => setNewPlan({ ...newPlan, startDate: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-emerald-500"
+                                        className="w-full px-6 py-6 bg-white/5 border border-white/10 rounded-[30px] text-white focus:border-emerald-500 transition-all"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold mb-2">Bitiş Tarihi</label>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4">BİTİŞ</label>
                                     <input
                                         type="date"
                                         value={newPlan.endDate}
                                         onChange={(e) => setNewPlan({ ...newPlan, endDate: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-emerald-500"
+                                        className="w-full px-6 py-6 bg-white/5 border border-white/10 rounded-[30px] text-white focus:border-emerald-500 transition-all"
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Notlar</label>
-                                <textarea
-                                    value={newPlan.notes}
-                                    onChange={(e) => setNewPlan({ ...newPlan, notes: e.target.value })}
-                                    className="w-full h-24 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white resize-none focus:outline-none focus:border-emerald-500"
-                                    placeholder="Genel notlar..."
-                                />
-                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
                             {Object.keys(newPlan.dailyPlans).map((day) => (
-                                <div key={day} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                                    <h4 className="font-semibold mb-3 capitalize">{day}</h4>
-                                    <div className="space-y-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Kahvaltı"
-                                            value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].breakfast}
-                                            onChange={(e) => setNewPlan({
-                                                ...newPlan,
-                                                dailyPlans: {
-                                                    ...newPlan.dailyPlans,
-                                                    [day]: { ...newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans], breakfast: e.target.value }
-                                                }
-                                            })}
-                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Öğle Yemeği"
-                                            value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].lunch}
-                                            onChange={(e) => setNewPlan({
-                                                ...newPlan,
-                                                dailyPlans: {
-                                                    ...newPlan.dailyPlans,
-                                                    [day]: { ...newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans], lunch: e.target.value }
-                                                }
-                                            })}
-                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Akşam Yemeği"
-                                            value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].dinner}
-                                            onChange={(e) => setNewPlan({
-                                                ...newPlan,
-                                                dailyPlans: {
-                                                    ...newPlan.dailyPlans,
-                                                    [day]: { ...newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans], dinner: e.target.value }
-                                                }
-                                            })}
-                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Atıştırmalıklar"
-                                            value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].snacks}
-                                            onChange={(e) => setNewPlan({
-                                                ...newPlan,
-                                                dailyPlans: {
-                                                    ...newPlan.dailyPlans,
-                                                    [day]: { ...newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans], snacks: e.target.value }
-                                                }
-                                            })}
-                                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
-                                        />
-                                    </div>
+                                <div key={day} className="bg-white/5 rounded-[40px] p-8 border border-white/5 space-y-6">
+                                    <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-4 border-b border-emerald-500/10 pb-4">{day}</h4>
+                                    <DailyMealInput day={day} label="KAHVALTI" value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].breakfast} onChange={(v: string) => updateDailyPlan(day, 'breakfast', v)} />
+                                    <DailyMealInput day={day} label="ÖĞLE" value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].lunch} onChange={(v: string) => updateDailyPlan(day, 'lunch', v)} />
+                                    <DailyMealInput day={day} label="AKŞAM" value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].dinner} onChange={(v: string) => updateDailyPlan(day, 'dinner', v)} />
+                                    <DailyMealInput day={day} label="ARA ÖĞÜN" value={newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans].snacks} onChange={(v: string) => updateDailyPlan(day, 'snacks', v)} />
                                 </div>
                             ))}
                         </div>
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl font-semibold transition-all"
-                            >
-                                İptal
-                            </button>
-                            <button
-                                onClick={handleCreatePlan}
-                                className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold transition-all"
-                            >
-                                Oluştur
-                            </button>
+                        <div className="flex gap-6 pt-12 border-t border-white/5">
+                            <button onClick={() => setShowModal(false)} className="flex-1 py-6 bg-white/5 text-gray-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] hover:bg-white/10 transition-all">İPTAL ET</button>
+                            <button onClick={handleCreatePlan} className="flex-[2] py-6 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] hover:bg-emerald-500 hover:shadow-[0_20px_40px_rgba(16,185,129,0.3)] transition-all">SİSTEME KAYDET VE YAYINLA</button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             )}
+        </div>
+    );
+
+    function updateDailyPlan(day: string, meal: string, value: string) {
+        setNewPlan({
+            ...newPlan,
+            dailyPlans: {
+                ...newPlan.dailyPlans,
+                [day]: { ...newPlan.dailyPlans[day as keyof typeof newPlan.dailyPlans], [meal]: value }
+            }
+        });
+    }
+}
+
+function MealItem({ label, content, icon }: any) {
+    return (
+        <div className="space-y-2">
+            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1">{label}</span>
+            <div className="bg-black/40 px-4 py-3 rounded-2xl border border-white/[0.03] flex items-center gap-3">
+                <span className="text-xl grayscale group-hover/card:grayscale-0 transition-all">{icon}</span>
+                <span className="text-xs font-bold text-gray-400 italic truncate">{content || "Planlanmadı"}</span>
+            </div>
+        </div>
+    );
+}
+
+function DailyMealInput({ label, value, onChange }: any) {
+    return (
+        <div className="space-y-2">
+            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-2">{label}</label>
+            <input
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full px-4 py-3 bg-black/40 border border-white/5 rounded-xl text-xs text-white focus:border-emerald-500 transition-all"
+                placeholder="..."
+            />
         </div>
     );
 }
 
 function AITab({ student }: any) {
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold">{student.fullName} - AI Performans Analizi</h2>
+        <div className="space-y-12 animate-in fade-in duration-1000">
+            <div className="flex flex-col gap-2 mb-8">
+                <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">AI <span className="text-amber-500">ANALİZ</span> MERKEZİ</h2>
+                <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Yapay zeka destekli performans öngörüleri</p>
+            </div>
 
-            <div className="bg-gradient-to-br from-amber-600/20 to-orange-600/20 border border-amber-500/30 rounded-2xl p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl" />
-                <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-4">
-                        <Sparkles className="w-8 h-8 text-amber-400" />
-                        <h3 className="text-2xl font-bold text-white">AI Video Analizi</h3>
-                        <span className="px-3 py-1 bg-amber-500/20 text-amber-300 text-xs font-bold rounded-full uppercase">Premium</span>
+            <div className="bg-[#0A0B1E] border border-white/5 rounded-[50px] p-12 lg:p-20 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-600/5 blur-[150px] rounded-full -mr-64 -mt-64 transition-all group-hover:bg-amber-600/10" />
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-orange-600/5 blur-[100px] rounded-full -ml-32 -mb-32" />
+
+                <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto">
+                    <div className="w-24 h-24 bg-amber-500/10 rounded-[32px] flex items-center justify-center mb-10 border border-amber-500/20 shadow-2xl group-hover:scale-110 transition-transform duration-700">
+                        <Sparkles className="w-12 h-12 text-amber-400" />
                     </div>
-                    <p className="text-gray-300 mb-6 leading-relaxed">
-                        Yapay zeka destekli video analizi ile oyuncunuzun teknik becerilerini, vücut dilini, pozisyon alma yeteneğini ve gelişim alanlarını detaylı inceleyin.
+
+                    <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-6">AI VİDEO <span className="text-amber-500">ANALİTİĞİ</span></h3>
+                    <p className="text-gray-400 font-bold italic leading-relaxed text-lg mb-12">
+                        Gelişmiş bilgisayarlı görü algoritmalarımız ile oyuncunun saha içi dizilimini, sprint hızlarını ve teknik hatalarını saniyeler içinde raporlayın.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div className="bg-white/10 rounded-xl p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Video className="w-5 h-5 text-amber-400" />
-                                <span className="font-semibold">Video Yükle</span>
-                            </div>
-                            <p className="text-sm text-gray-400">Maç veya antrenman videosu yükleyin</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-12">
+                        <div className="bg-black/40 border border-white/5 p-8 rounded-[32px] hover:border-amber-500/30 transition-all text-left group/box">
+                            <Video className="w-8 h-8 text-amber-400 mb-6 group-hover/box:rotate-12 transition-transform" />
+                            <h4 className="text-white font-black uppercase tracking-widest mb-2 italic">VERİ GİRİŞİ</h4>
+                            <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Maç veya antrenman görüntülerini sisteme yükleyin</p>
                         </div>
-                        <div className="bg-white/10 rounded-xl p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <TrendingUp className="w-5 h-5 text-amber-400" />
-                                <span className="font-semibold">Detaylı Rapor</span>
-                            </div>
-                            <p className="text-sm text-gray-400">AI destekli performans raporu alın</p>
+                        <div className="bg-black/40 border border-white/5 p-8 rounded-[32px] hover:border-amber-500/30 transition-all text-left group/box">
+                            <TrendingUp className="w-8 h-8 text-amber-400 mb-6 group-hover/box:scale-110 transition-transform" />
+                            <h4 className="text-white font-black uppercase tracking-widest mb-2 italic">DERİN ANALİZ</h4>
+                            <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Yapay zeka tarafından hazırlanan gelişim rotasını takip edin</p>
                         </div>
                     </div>
-                    <button className="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg">
-                        Premium'a Yükselt
+
+                    <button className="group relative px-12 py-6 bg-amber-600 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.3em] transition-all hover:bg-amber-500 hover:shadow-[0_20px_60px_rgba(245,158,11,0.35)] overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                        PREMIUM'A YÜKSELT VE KEŞFET
                     </button>
+                    <p className="mt-8 text-[10px] text-gray-600 font-black uppercase tracking-[0.4em]">FUTKIDS PREMIUM ÜYELİK GEREKTİRİR</p>
                 </div>
             </div>
         </div>
@@ -1164,12 +1579,11 @@ function ParentsTab({ user, students }: any) {
     const [messageType, setMessageType] = useState<'sms' | 'email'>('email');
     const [message, setMessage] = useState({ subject: "", body: "" });
 
-    // Add Parent Form State
     const [newParent, setNewParent] = useState({
         fullName: "",
         email: "",
         phone: "",
-        password: "" // Optional
+        password: ""
     });
 
     useEffect(() => {
@@ -1181,11 +1595,9 @@ function ParentsTab({ user, students }: any) {
     const fetchParents = async () => {
         try {
             const academyId = user.academy._id || user.academy;
-            // Fetch all parents belonging to the academy from users endpoint
             const response = await api.get(`/users?role=parent&academy=${academyId}`);
             let fetchedParents = response.data;
 
-            // Map children from the students list to each parent
             fetchedParents = fetchedParents.map((parent: any) => {
                 const childrens = students.filter((s: any) =>
                     (s.parent && (s.parent._id === parent._id || s.parent === parent._id))
@@ -1217,11 +1629,10 @@ function ParentsTab({ user, students }: any) {
 
             setShowAddModal(false);
             setNewParent({ fullName: "", email: "", phone: "", password: "" });
-            fetchParents(); // Refresh list
+            fetchParents();
             alert("Veli başarıyla eklendi!");
         } catch (error) {
             console.error("Veli eklenemedi:", error);
-            alert("Veli eklenirken bir hata oluştu.");
         }
     };
 
@@ -1230,299 +1641,222 @@ function ParentsTab({ user, students }: any) {
             try {
                 await api.delete(`/users/${parentId}`);
                 fetchParents();
-                alert("Veli silindi.");
             } catch (error) {
                 console.error("Veli silinemedi:", error);
-                alert("Silme işlemi başarısız.");
             }
         }
     };
 
     const handleSendMessage = async () => {
         if (!selectedParent) return;
-
-        // Placeholder for SMS/Email integration
-        alert(`${messageType === 'sms' ? 'SMS' : 'Email'} gönderme özelliği yakında aktif olacak!\n\nAlıcı: ${selectedParent.fullName}\n${messageType === 'email' ? `Konu: ${message.subject}\n` : ''}Mesaj: ${message.body}`);
+        alert(`${messageType === 'sms' ? 'SMS' : 'Email'} gönderildi! (Simülasyon)`);
         setShowMessageModal(false);
         setMessage({ subject: "", body: "" });
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center py-12">
-                <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold">Veli Yönetimi</h2>
-                    <div className="text-sm text-gray-500">{parents.length} Veli</div>
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                <div className="flex flex-col gap-2">
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">VELİ <span className="text-blue-500">REHBERİ</span></h2>
+                    <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">İletişim ve aile yönetimi</p>
                 </div>
                 <button
                     onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-all"
+                    className="group flex items-center gap-4 px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-blue-500 hover:shadow-[0_20px_40px_rgba(59,130,246,0.3)] shadow-2xl"
                 >
-                    <UserPlus className="w-5 h-5" />
-                    Veli Ekle
+                    <UserPlus className="w-4 h-4 transition-transform group-hover:scale-110" />
+                    YENİ VELİ KAYDET
                 </button>
             </div>
 
-            {parents.length === 0 ? (
-                <div className="bg-white/5 rounded-2xl p-12 border border-white/10 text-center">
-                    <UserPlus className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">Henüz kayıtlı veli bulunmuyor</p>
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold inline-flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        İlk Veliyi Ekle
-                    </button>
+            {loading ? (
+                <div className="flex justify-center py-20">
+                    <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+            ) : parents.length === 0 ? (
+                <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-24 text-center shadow-2xl">
+                    <div className="w-24 h-24 bg-blue-500/10 rounded-3xl flex items-center justify-center mx-auto mb-10 border border-blue-500/20">
+                        <Users className="w-12 h-12 text-blue-500" />
+                    </div>
+                    <p className="text-white font-black uppercase tracking-[0.3em] text-sm mb-4 italic">VELİ KAYDI YOK</p>
+                    <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">Sistemde henüz kayıtlı bir veli bulunmamaktadır</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {parents.map((parent) => (
-                        <div key={parent._id} className="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all relative group">
-                            <button
-                                onClick={() => handleDeleteParent(parent._id)}
-                                className="absolute top-4 right-4 p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                title="Veliyi Sil"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
+                <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8">
+                    {parents.map((parent, idx) => (
+                        <motion.div
+                            key={parent._id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-8 hover:border-blue-500/20 transition-all group relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-all" />
 
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-xl font-bold">
-                                        {parent.fullName?.charAt(0) || "V"}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold">{parent.fullName}</h3>
-                                        <p className="text-sm text-gray-400">{parent.students?.length || 0} Çocuk</p>
+                            <div className="flex items-center gap-6 mb-8 relative z-10">
+                                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-xl font-black text-white italic shadow-2xl border border-white/10 group-hover:scale-110 transition-transform">
+                                    {parent.fullName?.charAt(0) || "V"}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tight">{parent.fullName}</h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{parent.students?.length || 0} SPORCU VELİSİ</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Contact Info */}
-                            <div className="space-y-2 mb-4">
-                                {parent.email && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Mail className="w-4 h-4 text-gray-500" />
-                                        <span className="text-gray-300">{parent.email}</span>
-                                    </div>
-                                )}
-                                {parent.phone && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Phone className="w-4 h-4 text-gray-500" />
-                                        <span className="text-gray-300">{parent.phone}</span>
-                                    </div>
-                                )}
+                            <div className="space-y-4 mb-8 relative z-10">
+                                <ContactLine icon={<Mail className="w-3.5 h-3.5" />} text={parent.email} type="EMAIL" />
+                                <ContactLine icon={<Phone className="w-3.5 h-3.5" />} text={parent.phone} type="TELEFON" />
                             </div>
 
-                            {/* Children List */}
-                            {parent.students && parent.students.length > 0 && (
-                                <div className="mb-4">
-                                    <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Çocukları</div>
-                                    <div className="space-y-1">
-                                        {parent.students.map((student: any) => (
-                                            <div key={student._id} className="flex items-center justify-between bg-white/5 rounded-lg p-2">
-                                                <span className="text-sm">{student.fullName}</span>
-                                                <span className="text-xs text-gray-500">{student.position}</span>
-                                            </div>
+                            {parent.students?.length > 0 && (
+                                <div className="mb-8 p-4 bg-black/20 rounded-2xl border border-white/5 relative z-10">
+                                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-2 block">BAĞLI SPORCULAR</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {parent.students.map((s: any) => (
+                                            <span key={s._id} className="px-3 py-1.5 bg-white/5 rounded-lg text-[10px] font-bold text-gray-400 border border-white/5">
+                                                {s.fullName}
+                                            </span>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
-                            <div className="flex gap-2">
+                            <div className="flex gap-4 relative z-10">
+                                <ParentButton icon={<Mail />} label="E-POSTA" color="blue" onClick={() => { setSelectedParent(parent); setMessageType('email'); setShowMessageModal(true); }} />
+                                <ParentButton icon={<Phone />} label="SMS" color="emerald" onClick={() => { setSelectedParent(parent); setMessageType('sms'); setShowMessageModal(true); }} />
                                 <button
-                                    onClick={() => {
-                                        setSelectedParent(parent);
-                                        setMessageType('email');
-                                        setShowMessageModal(true);
-                                    }}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold text-sm transition-all"
+                                    onClick={() => handleDeleteParent(parent._id)}
+                                    className="p-4 bg-white/5 text-gray-600 hover:text-red-500 rounded-2xl border border-white/5 hover:border-red-500/30 transition-all"
                                 >
-                                    <Mail className="w-4 h-4" />
-                                    Email
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedParent(parent);
-                                        setMessageType('sms');
-                                        setShowMessageModal(true);
-                                    }}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold text-sm transition-all"
-                                >
-                                    <Phone className="w-4 h-4" />
-                                    SMS
+                                    <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             )}
 
             {/* Add Parent Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-                    <div className="bg-[#0a0a1a] rounded-2xl p-6 max-w-md w-full border border-white/10" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-2xl font-bold">Yeni Veli Ekle</h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 lg:p-10" onClick={() => setShowAddModal(false)}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 40 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-[#050614] border border-white/10 rounded-[50px] p-8 lg:p-16 max-w-2xl w-full shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-12">
+                            <div className="flex flex-col gap-2">
+                                <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">VELİ <span className="text-blue-500">KAYIT</span></h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em]">Sisteme yeni bir veli ekleyin</p>
+                            </div>
+                            <button onClick={() => setShowAddModal(false)} className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-red-500/20 transition-all text-gray-500 hover:text-red-500">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
-                        <div className="space-y-4 mb-6">
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Ad Soyad</label>
-                                <input
-                                    type="text"
-                                    value={newParent.fullName}
-                                    onChange={(e) => setNewParent({ ...newParent, fullName: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    placeholder="Veli Adı Soyadı"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    value={newParent.email}
-                                    onChange={(e) => setNewParent({ ...newParent, email: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    placeholder="ornek@email.com"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Telefon</label>
-                                <input
-                                    type="text"
-                                    value={newParent.phone}
-                                    onChange={(e) => setNewParent({ ...newParent, phone: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    placeholder="+90 555 ..."
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Şifre (İsteğe Bağlı)</label>
-                                <input
-                                    type="password"
-                                    value={newParent.password}
-                                    onChange={(e) => setNewParent({ ...newParent, password: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-                                    placeholder="Boş bırakılırsa otomatik oluşturulur"
-                                />
-                            </div>
+                        <div className="space-y-6">
+                            <InputField label="AD SOYAD" value={newParent.fullName} onChange={(val: string) => setNewParent({ ...newParent, fullName: val })} placeholder="Veli Adı Soyadı" />
+                            <InputField label="E-POSTA" value={newParent.email} onChange={(val: string) => setNewParent({ ...newParent, email: val })} placeholder="veli@ornek.com" />
+                            <InputField label="TELEFON" value={newParent.phone} onChange={(val: string) => setNewParent({ ...newParent, phone: val })} placeholder="05XX XXX XX XX" />
+                            <InputField label="ŞİFRE" value={newParent.password} onChange={(val: string) => setNewParent({ ...newParent, password: val })} placeholder="Giriş şifresi (İsteğe bağlı)" type="password" />
                         </div>
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl font-semibold transition-all"
-                            >
-                                İptal
-                            </button>
-                            <button
-                                onClick={handleAddParent}
-                                className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-all"
-                            >
-                                Kaydet
-                            </button>
+                        <div className="flex gap-6 mt-12">
+                            <button onClick={() => setShowAddModal(false)} className="flex-1 py-5 bg-white/5 text-gray-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] hover:bg-white/10 transition-all">İPTAL</button>
+                            <button onClick={handleAddParent} className="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] hover:bg-blue-500 hover:shadow-[0_20px_40px_rgba(59,130,246,0.3)] transition-all">VELİYİ KAYDET</button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             )}
 
             {/* Message Modal */}
             {showMessageModal && selectedParent && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowMessageModal(false)}>
-                    <div className="bg-[#0a0a1a] rounded-2xl p-6 max-w-2xl w-full border border-white/10" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-2xl font-bold mb-6">
-                            {messageType === 'sms' ? 'SMS' : 'Email'} Gönder - {selectedParent.fullName}
-                        </h3>
-
-                        <div className="space-y-4 mb-6">
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
-                                {messageType === 'email' ? (
-                                    <>
-                                        <Mail className="w-4 h-4" />
-                                        <span>{selectedParent.email}</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Phone className="w-4 h-4" />
-                                        <span>{selectedParent.phone}</span>
-                                    </>
-                                )}
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 lg:p-10" onClick={() => setShowMessageModal(false)}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 40 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-[#050614] border border-white/10 rounded-[50px] p-8 lg:p-16 max-w-4xl w-full shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-12">
+                            <div className="flex flex-col gap-2">
+                                <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">{messageType === 'sms' ? 'SMS' : 'E-POSTA'} <span className="text-blue-500">MERKEZİ</span></h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em]">{selectedParent.fullName} ile iletişim kurun</p>
                             </div>
+                            <button onClick={() => setShowMessageModal(false)} className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-red-500/20 transition-all text-gray-500 hover:text-red-500">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
 
+                        <div className="space-y-8">
                             {messageType === 'email' && (
-                                <div>
-                                    <label className="block text-sm font-semibold mb-2">Konu</label>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4">KONU</label>
                                     <input
                                         type="text"
                                         value={message.subject}
                                         onChange={(e) => setMessage({ ...message, subject: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500"
-                                        placeholder="Email konusu..."
+                                        className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[24px] text-white focus:border-blue-500 transition-all font-bold italic"
+                                        placeholder="Mesaj konusu..."
                                     />
                                 </div>
                             )}
-
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Mesaj</label>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4">MESAJ İÇERİĞİ</label>
                                 <textarea
                                     value={message.body}
                                     onChange={(e) => setMessage({ ...message, body: e.target.value })}
-                                    className="w-full h-40 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white resize-none focus:outline-none focus:border-blue-500"
-                                    placeholder={messageType === 'sms' ? "SMS mesajınız..." : "Email içeriği..."}
+                                    className="w-full h-48 px-8 py-6 bg-white/5 border border-white/10 rounded-[32px] text-white focus:border-blue-500 transition-all font-bold italic resize-none"
+                                    placeholder="Mesajınızı buraya yazın..."
                                 />
-                                {messageType === 'sms' && (
-                                    <div className="text-xs text-gray-500 mt-2">
-                                        {message.body.length} / 160 karakter
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-                                <p className="text-sm text-amber-200">
-                                    <strong>Not:</strong> {messageType === 'sms' ? 'SMS' : 'Email'} gönderme özelliği yakında aktif olacak.
-                                    Bu bir önizleme ekranıdır.
-                                </p>
                             </div>
                         </div>
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowMessageModal(false)}
-                                className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl font-semibold transition-all"
-                            >
-                                İptal
-                            </button>
-                            <button
-                                onClick={handleSendMessage}
-                                disabled={!message.body.trim() || (messageType === 'email' && !message.subject.trim())}
-                                className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-all disabled:opacity-50"
-                            >
-                                Gönder
-                            </button>
+                        <div className="flex gap-6 mt-12">
+                            <button onClick={() => setShowMessageModal(false)} className="flex-1 py-5 bg-white/5 text-gray-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] hover:bg-white/10 transition-all">İPTAL</button>
+                            <button onClick={handleSendMessage} className="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] hover:bg-blue-500 hover:shadow-[0_20px_40px_rgba(59,130,246,0.3)] transition-all">GÖNDER</button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             )}
         </div>
     );
 }
 
+function ContactLine({ icon, text, type }: any) {
+    return (
+        <div className="flex items-center gap-4 group/line">
+            <div className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center text-gray-500 group-hover/line:text-blue-400 transition-colors">
+                {icon}
+            </div>
+            <div className="flex flex-col">
+                <span className="text-[10px] font-black text-gray-700 uppercase">{type}</span>
+                <span className="text-sm font-bold text-gray-400 tracking-tight">{text || "Belirtilmedi"}</span>
+            </div>
+        </div>
+    );
+}
 
-function TacticsTab() {
+function ParentButton({ icon, label, color, onClick }: any) {
+    const colorClasses = color === 'blue' ? 'bg-blue-600/10 text-blue-400 hover:bg-blue-600 hover:text-white' : 'bg-emerald-600/10 text-emerald-400 hover:bg-emerald-600 hover:text-white';
+    return (
+        <button
+            onClick={onClick}
+            className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border border-transparent hover:border-white/20 ${colorClasses}`}
+        >
+            <span className="w-4 h-4">{icon}</span>
+            {label}
+        </button>
+    );
+}
+
+
+function TacticsTab({ students }: { students: Student[] }) {
     const mixedItems = [
         <PlayerCard
             key="p1"
@@ -1575,29 +1909,44 @@ function TacticsTab() {
     ];
 
     return (
-        <div className="space-y-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Tactics Board - Takes 2/3 space on large screens */}
+        <div className="space-y-12 animate-in fade-in duration-700">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                <div className="flex flex-col gap-2">
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">TAKTAK <span className="text-indigo-500">MERKEZİ</span></h2>
+                    <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Diziliş ve stratejik planlama</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div className="lg:col-span-2">
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                        <Presentation className="text-indigo-500" />
-                        Taktik Tahtası
-                    </h2>
-                    <div className="bg-[#0a0a1a] rounded-[40px] p-8 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/5 blur-[120px] -z-10"></div>
-                        <div className="absolute bottom-0 left-0 w-72 h-72 bg-purple-600/5 blur-[100px] -z-10"></div>
-                        <TacticsBoard />
+                    <div className="bg-[#0A0B1E] rounded-3xl lg:rounded-[50px] p-6 lg:p-12 border border-white/5 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/5 blur-[120px] -z-10 group-hover:bg-indigo-600/10 transition-all"></div>
+                        <div className="flex items-center gap-4 mb-10">
+                            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-indigo-500/10 rounded-xl lg:rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                                <Presentation className="w-5 h-5 lg:w-6 lg:h-6 text-indigo-500" />
+                            </div>
+                            <h3 className="text-lg lg:text-xl font-black text-white italic uppercase tracking-tight">ANA DİZİLİŞ</h3>
+                        </div>
+                        <div className="bg-black/20 rounded-2xl lg:rounded-[40px] p-4 lg:p-10 border border-white/5 shadow-inner overflow-x-auto scrollbar-hide">
+                            <div className="min-w-[600px] lg:min-w-0">
+                                <TacticsBoard students={students} />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Sidebar Stats Carousel - Takes 1/3 space */}
-                <div className="flex flex-col">
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                        <TrendingUp className="text-emerald-500" />
-                        Highlights
-                    </h2>
-                    <div className="bg-gradient-to-b from-white/5 to-transparent rounded-[40px] border border-white/10 p-0 flex-1 flex items-center justify-center overflow-hidden min-h-[600px]">
-                        <StatCarousel items={mixedItems} />
+                <div className="flex flex-col h-full">
+                    <div className="bg-[#0A0B1E] rounded-[50px] border border-white/5 p-8 flex-1 flex flex-col relative overflow-hidden group shadow-2xl">
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-600/5 blur-[100px] -z-10 group-hover:bg-emerald-600/10 transition-all"></div>
+                        <div className="flex items-center gap-4 mb-10">
+                            <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+                                <TrendingUp className="w-6 h-6 text-emerald-500" />
+                            </div>
+                            <h3 className="text-xl font-black text-white italic uppercase tracking-tight">ÖNE ÇIKANLAR</h3>
+                        </div>
+                        <div className="flex-1 flex items-center justify-center min-h-[500px]">
+                            <StatCarousel items={mixedItems} />
+                        </div>
                     </div>
                 </div>
             </div>
