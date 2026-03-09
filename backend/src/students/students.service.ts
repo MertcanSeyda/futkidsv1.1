@@ -263,24 +263,28 @@ export class StudentsService {
       : 'Belirgin bir oyun stili eklenmemiş.';
 
     const prompt = `
-# FUTKIDS PROFESYONEL SCOUT ANALİZİ
+# FUTKIDS PREMIUM SCOUT ANALİZ RAPORU
 
-Aşağıdaki verileri inceleyerek üst düzey bir futbol izleme (scout) raporu hazırla. 
-Dilin çok profesyonel, analitik ve bir futbol direktörüne sunulacak ciddiyette olsun. Motivasyonu yüksek ama gerçekçi bir ton kullan.
+Sen profesyonel bir futbol veri analisti ve scout'sun. Aşağıdaki oyuncu verilerini kullanarak, bir kulüp başkanına veya teknik direktöre sunulacak ciddiyette, derinlemesine bir rapor hazırlaman gerekiyor. 
 
-[VERİ SETİ]
-- Sporcu: ${student.fullName}
+[ANALİZ EDİLECEK OYUNCU VERİLERİ]
+- Oyuncu: ${student.fullName}
 - Mevki: ${student.position}
-- Fiziksel: ${student.height || '--'}cm / ${student.weight || '--'}kg / ${ageStr} Yaş
-- Teknik Puanlar: Hız:${student.stats?.pace}, Şut:${student.stats?.shooting}, Pas:${student.stats?.passing}, Top Sürme:${student.stats?.dribbling}, Defans:${student.stats?.defending}, Fizik:${student.stats?.physical} (OVR: ${student.rating})
-- Özel Yetenekler: ${playstylesStr}
-- Gözlemci Notları: ${coachNotesStr}
+- Yaş/Boy/Kilo: ${ageStr} yaş / ${student.height || '--'}cm / ${student.weight || '--'}kg
+- Teknik Veriler: Hız:${student.stats?.pace}, Şut:${student.stats?.shooting}, Pas:${student.stats?.passing}, Top Sürme:${student.stats?.dribbling}, Defans:${student.stats?.defending}, Fizik:${student.stats?.physical} (Genel Ort: ${student.rating})
+- Aktif Oyun Stilleri: ${playstylesStr}
+- Antrenör Gözlemleri: ${coachNotesStr}
 
-RAPOR FORMATI (Markdown):
-1. **[STRATEJİK PROFİL]**: Oyuncunun oyun karakteristiğini 2-3 cümlede özetle.
-2. **[ELİT YETENEKLER]**: Verilere ve notlara dayanarak en fark yaratan yönlerini analiz et.
-3. **[KRİTİK GELİŞİM ALANLARI]**: Zayıf olduğu metricleri ve antrenör notlarındaki eksikleri profesyonelce yorumla.
-4. **[GELECEK PROJEKSİYONU]**: Potansiyel tavanını ve sonraki adımlar için teknik tavsiyelerini yaz.
+[RAPOR TALİMATLARI]
+1. Dilin çok teknik ve akıcı olsun. "Maç içi pozisyon bilgisi", "geçiş oyunu", "patlayıcı güç", "toplu/topsuz oyun zekası" gibi terimler kullan.
+2. Sadece genel cümleler kurma; oyuncunun spesifik verilerine (örneğin 99 hızına veya düşük fizik puanına) atıfta bulunarak analiz yap.
+3. Markdown formatında şu 4 ana başlığı kullan:
+   - **[TEKNİK ANALİZ]**: Oyuncunun beceri setini mevkisiyle kıyaslayarak teknik bir dille açıkla.
+   - **[SAHA İÇİ KARAKTER]**: Oyun stilleri ve antrenör notlarından yola çıkarak mental ve taktiksel profilini çiz.
+   - **[LİMİTLER VE RİSKLER]**: Gelişmesi gereken en kritik 2-3 noktayı "Scout Uyarısı" ciddiyetinde belirt.
+   - **[KARİYER YOL HARİTASI]**: Bu oyuncunun potansiyel tavanı (Avrupa ligleri, Süper Lig vb.) ve bir sonraki eğitim aşaması için somut önerin ne?
+
+Not: Rapora "Sayın Futbol Direktörü" gibi girişlerle başlama, doğrudan analize odaklan. Kısa ama çok öz ve vurucu olsun.
 `;
 
     try {

@@ -155,35 +155,41 @@ const PlayerInfoSection = ({ playerInfo }: { playerInfo?: any }) => {
                     const canvas = await html2canvas(reportRef.current, {
                         scale: 2,
                         useCORS: true,
-                        backgroundColor: '#111111'
+                        backgroundColor: '#050505',
+                        windowWidth: 1000,
+                        width: 1000
                     });
                     
                     const imgData = canvas.toDataURL('image/png');
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    const pageHeight = pdf.internal.pageSize.getHeight();
                     
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(pdfHeight, pdf.internal.pageSize.getHeight()));
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
                     
                     // Add new pages if height exceeds A4
-                    let leftHeight = pdfHeight - pdf.internal.pageSize.getHeight();
-                    let position = -pdf.internal.pageSize.getHeight();
+                    let heightLeft = pdfHeight - pageHeight;
+                    let position = -pageHeight;
                     
-                    while (leftHeight > 0) {
+                    while (heightLeft > 0) {
                         pdf.addPage();
+                        pdf.setDrawColor(255, 255, 255);
+                        pdf.setFillColor(5, 5, 5);
+                        pdf.rect(0, 0, pdfWidth, pageHeight, 'F');
                         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                        leftHeight -= pdf.internal.pageSize.getHeight();
-                        position -= pdf.internal.pageSize.getHeight();
+                        heightLeft -= pageHeight;
+                        position -= pageHeight;
                     }
                     
-                    pdf.save(`${info.fullName.replace(/\s+/g, '_')}_A Scout_Raporu.pdf`);
+                    pdf.save(`${info.fullName.replace(/\s+/g, '_')}_A_Scout_Raporu.pdf`);
                 } catch (pdfErr) {
                     console.error("PDF Generation Error:", pdfErr);
                     setAiError("PDF oluşturulurken hata oluştu.");
                 } finally {
                     setIsGenerating(false);
                 }
-            }, 500);
+            }, 800);
 
         } catch (error: any) {
             console.error(error);
@@ -298,49 +304,160 @@ const PlayerInfoSection = ({ playerInfo }: { playerInfo?: any }) => {
             {/* Hidden Div for PDF Generation */}
             {generatedReport && (
                 <div className="fixed top-0 left-0 -z-50 pointer-events-none opacity-0">
-                    <div ref={reportRef} className="w-[800px] p-12 font-sans border-4" style={{ backgroundColor: '#111111', borderColor: '#222222', color: '#ffffff' }}>
+                    <div ref={reportRef} 
+                         style={{ width: '1000px', backgroundColor: '#050505', color: '#ffffff', fontFamily: 'sans-serif' }}>
                         
-                        {/* Header */}
-                        <div className="flex items-center justify-between border-b-2 pb-8 mb-8" style={{ borderColor: '#9333ea' }}>
-                            <div>
-                                <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2" style={{ color: '#ffffff' }}>{info.fullName}</h1>
-                                <div className="flex items-center gap-4 text-sm font-bold uppercase tracking-widest" style={{ color: '#9ca3af' }}>
-                                    <span>MEVKİ: {info.position}</span>
-                                    <span>•</span>
-                                    <span>YAŞ: {age}</span>
-                                    <span>•</span>
-                                    <span>BOY: {info.height || '--'} cm</span>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <h2 className="text-xl font-black" style={{ color: '#c084fc' }}>AI SCOUT RAPORU</h2>
-                                <p className="text-xs mt-1" style={{ color: '#6b7280' }}>{new Date().toLocaleDateString('tr-TR')}</p>
-                            </div>
-                        </div>
+                        <table style={{ width: '1000px', borderCollapse: 'collapse', border: 'none' }}>
+                            <tbody>
+                                <tr>
+                                    {/* Sidebar */}
+                                    <td style={{ width: '300px', verticalAlign: 'top', backgroundColor: '#0c0c0c', borderRight: '1px solid #222222', padding: '40px' }}>
+                                        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                                            <div style={{ 
+                                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', 
+                                                width: '100px', height: '100px', borderRadius: '50%', 
+                                                border: '4px solid #9333ea', marginBottom: '15px' 
+                                            }}>
+                                                <span style={{ fontSize: '40px', fontWeight: '900', fontStyle: 'italic' }}>{info.rating || '--'}</span>
+                                            </div>
+                                            <div style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', color: '#9333ea' }}>GENEL REYTİNG</div>
+                                        </div>
 
-                        {/* Summary / Report Content */}
-                        <div className="mb-10 text-[15px] leading-relaxed" style={{ color: '#d1d5db' }}>
-                            {generatedReport.split('\n').map((line, idx) => {
-                                if (line.startsWith('## ') || line.startsWith('# ')) {
-                                    return <h3 key={idx} className="font-black text-xl mb-3 mt-6 uppercase border-l-4 pl-3" style={{ color: '#ffffff', borderColor: '#a855f7' }}>{line.replace(/#/g, '').trim()}</h3>;
-                                }
-                                if (line.startsWith('**') || line.includes('**')) {
-                                   const parts = line.split('**');
-                                   return (
-                                       <p key={idx} className="mb-3">
-                                           {parts.map((p, i) => i % 2 === 1 ? <strong key={i} style={{ color: '#ffffff' }}>{p}</strong> : p)}
-                                       </p>
-                                   );
-                                }
-                                return <p key={idx} className="mb-2">{line}</p>;
-                            })}
-                        </div>
-                        
-                        {/* Footer Disclaimer */}
-                        <div className="mt-12 pt-6 border-t text-center text-xs flex items-center justify-center gap-2" style={{ borderColor: '#333333', color: '#4b5563' }}>
-                            <Sparkles className="w-3 h-3" style={{ color: '#a855f7' }} />
-                            Bu rapor Gemini AI altyapısı kullanılarak FUTKIDS sistemi tarafından otomatik üretilmiştir.
-                        </div>
+                                        <div style={{ marginBottom: '40px' }}>
+                                            <h3 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '1px solid #222', paddingBottom: '8px', marginBottom: '15px', color: '#666' }}>TEKNİK METRİKLER</h3>
+                                            {[
+                                                { label: 'HIZ (PAC)', val: info.stats?.pace },
+                                                { label: 'ŞUT (SHO)', val: info.stats?.shooting },
+                                                { label: 'PAS (PAS)', val: info.stats?.passing },
+                                                { label: 'DRİ (DRI)', val: info.stats?.dribbling },
+                                                { label: 'DEF (DEF)', val: info.stats?.defending },
+                                                { label: 'FİZ (PHY)', val: info.stats?.physical },
+                                            ].map((s, i) => (
+                                                <div key={i} style={{ marginBottom: '15px' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: 'bold', marginBottom: '4px' }}>
+                                                        <span>{s.label}</span>
+                                                        <span style={{ color: s.val && s.val > 80 ? '#22c55e' : (s.val && s.val > 70 ? '#eab308' : '#ef4444') }}>{s.val || 0}</span>
+                                                    </div>
+                                                    <div style={{ height: '6px', width: '100%', backgroundColor: '#222', borderRadius: '3px' }}>
+                                                        <div style={{ height: '100%', borderRadius: '3px', width: `${s.val || 0}%`, backgroundColor: s.val && s.val > 80 ? '#22c55e' : (s.val && s.val > 70 ? '#eab308' : '#ef4444') }} />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div>
+                                            <h3 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', borderBottom: '1px solid #222', paddingBottom: '8px', marginBottom: '15px', color: '#666' }}>FİZİKSEL PROFİL</h3>
+                                            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
+                                                <tbody>
+                                                    <tr>
+                                                        <td style={{ backgroundColor: '#151515', borderRadius: '8px', border: '1px solid #222', padding: '12px' }}>
+                                                            <div style={{ fontSize: '8px', fontWeight: 'bold', color: '#666', marginBottom: '4px' }}>BOY</div>
+                                                            <div style={{ fontSize: '14px', fontWeight: '900' }}>{info.height || '--'} cm</div>
+                                                        </td>
+                                                        <td style={{ width: '8px' }}></td>
+                                                        <td style={{ backgroundColor: '#151515', borderRadius: '8px', border: '1px solid #222', padding: '12px' }}>
+                                                            <div style={{ fontSize: '8px', fontWeight: 'bold', color: '#666', marginBottom: '4px' }}>KİLO</div>
+                                                            <div style={{ fontSize: '14px', fontWeight: '900' }}>{info.weight || '--'} kg</div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style={{ backgroundColor: '#151515', borderRadius: '8px', border: '1px solid #222', padding: '12px' }}>
+                                                            <div style={{ fontSize: '8px', fontWeight: 'bold', color: '#666', marginBottom: '4px' }}>YAŞ</div>
+                                                            <div style={{ fontSize: '14px', fontWeight: '900' }}>{age} Yaş</div>
+                                                        </td>
+                                                        <td style={{ width: '8px' }}></td>
+                                                        <td style={{ backgroundColor: '#151515', borderRadius: '8px', border: '1px solid #222', padding: '12px' }}>
+                                                            <div style={{ fontSize: '8px', fontWeight: 'bold', color: '#666', marginBottom: '4px' }}>MEVKİ</div>
+                                                            <div style={{ fontSize: '14px', fontWeight: '900' }}>{info.position}</div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+
+                                    {/* Main Content */}
+                                    <td style={{ verticalAlign: 'top', padding: '60px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #222', paddingBottom: '30px', marginBottom: '40px' }}>
+                                            <div>
+                                                <h1 style={{ fontSize: '48px', fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-2px', margin: '0 0 5px 0' }}>{info.fullName}</h1>
+                                                <p style={{ fontSize: '12px', fontWeight: 'bold', letterSpacing: '4px', textTransform: 'uppercase', color: '#9333ea', margin: 0 }}>PROFESYONEL SCOUT ANALİZİ</p>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontSize: '10px', fontWeight: '900', color: '#555', marginBottom: '4px' }}>DÜZENLENME TARİHİ</div>
+                                                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{new Date().toLocaleDateString('tr-TR')}</div>
+                                            </div>
+                                        </div>
+
+                                        {info.playstyles && info.playstyles.length > 0 && (
+                                            <div style={{ marginBottom: '40px' }}>
+                                                <h4 style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', color: '#666', marginBottom: '15px' }}>AKTİF OYUN STİLLERİ</h4>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                    {info.playstyles.filter((p: any) => p.active).map((p: any, i: number) => (
+                                                        <span key={i} style={{ 
+                                                            padding: '6px 12px', backgroundColor: 'rgba(147, 51, 234, 0.1)', 
+                                                            border: '1px solid rgba(147, 51, 234, 0.3)', borderRadius: '4px', 
+                                                            fontSize: '10px', fontWeight: 'bold', color: '#d8b4fe', textTransform: 'uppercase' 
+                                                        }}>
+                                                            {p.title}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div style={{ minHeight: '800px' }}>
+                                            {generatedReport.split('\n').map((line, idx) => {
+                                                const cleanLine = line.trim();
+                                                if (!cleanLine) return null;
+
+                                                if (cleanLine.startsWith('**[') || cleanLine.startsWith('###') || (cleanLine.startsWith('**') && cleanLine.endsWith('**')) || cleanLine.startsWith('# ')) {
+                                                    return (
+                                                        <div key={idx} style={{ marginTop: '30px', marginBottom: '15px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                <div style={{ width: '6px', height: '24px', backgroundColor: '#9333ea' }} />
+                                                                <h3 style={{ fontSize: '18px', fontWeight: '900', textTransform: 'uppercase', margin: 0, color: '#ffffff' }}>
+                                                                    {cleanLine.replace(/[#*\[\]]/g, '')}
+                                                                </h3>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+                                                    return (
+                                                        <div key={idx} style={{ marginLeft: '16px', marginBottom: '10px', display: 'flex', gap: '10px' }}>
+                                                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#9333ea', marginTop: '6px', flexShrink: 0 }} />
+                                                            <p style={{ fontSize: '14px', lineHeight: '1.6', color: '#cccccc', margin: 0 }}>
+                                                                {cleanLine.replace(/^[-*]\s*/, '').split('**').map((p, i) => i % 2 === 1 ? <strong key={i} style={{ color: '#fff' }}>{p}</strong> : p)}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <div key={idx} style={{ marginBottom: '20px', padding: '20px', backgroundColor: '#111', borderRadius: '12px', border: '1px solid #222' }}>
+                                                        <p style={{ fontSize: '14px', lineHeight: '1.6', color: '#aaaaaa', margin: 0 }}>
+                                                            {cleanLine.split('**').map((p, i) => i % 2 === 1 ? <strong key={i} style={{ color: '#fff' }}>{p}</strong> : p)}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <div style={{ marginTop: '60px', paddingTop: '30px', borderTop: '1px solid #222', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#444', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Sparkles style={{ width: '12px', height: '12px' }} />
+                                                FUTKIDS PREMIUM SCOUTING
+                                            </div>
+                                            <div style={{ fontSize: '9px', color: '#333', fontFamily: 'monospace' }}>
+                                                SCOUT_TOKEN: {Math.random().toString(36).substring(7).toUpperCase()}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             )}
