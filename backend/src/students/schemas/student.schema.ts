@@ -72,6 +72,20 @@ export class Student {
         comment: string;
         date: Date;
     }>;
+
+    @Prop({
+        type: [{
+            title: { type: String, required: true },
+            description: { type: String, default: '' },
+            active: { type: Boolean, default: true },
+        }],
+        default: []
+    })
+    playstyles?: Array<{
+        title: string;
+        description: string;
+        active: boolean;
+    }>;
 }
 
 export const StudentSchema = SchemaFactory.createForClass(Student);

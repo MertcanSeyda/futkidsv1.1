@@ -40,4 +40,69 @@ export class StudentsController {
   remove(@Param('id') id: string) {
     return this.studentsService.remove(id);
   }
+
+  // --- Coach Comments ---
+  @Post(':id/comments')
+  @ApiOperation({ summary: 'Add a coach comment to a student' })
+  addComment(
+    @Param('id') id: string,
+    @Body() body: { coachId: string; comment: string },
+  ) {
+    return this.studentsService.addComment(id, body.coachId, body.comment);
+  }
+
+  @Put(':id/comments/:commentId')
+  @ApiOperation({ summary: 'Update a coach comment' })
+  updateComment(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+    @Body() body: { comment: string },
+  ) {
+    return this.studentsService.updateComment(id, commentId, body.comment);
+  }
+
+  @Delete(':id/comments/:commentId')
+  @ApiOperation({ summary: 'Delete a coach comment' })
+  deleteComment(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+  ) {
+    return this.studentsService.deleteComment(id, commentId);
+  }
+
+  // --- Playstyles ---
+  @Post(':id/playstyles')
+  @ApiOperation({ summary: 'Add a playstyle to a student' })
+  addPlaystyle(
+    @Param('id') id: string,
+    @Body() body: { title: string; description: string },
+  ) {
+    return this.studentsService.addPlaystyle(id, body.title, body.description);
+  }
+
+  @Put(':id/playstyles/:playstyleId')
+  @ApiOperation({ summary: 'Update a playstyle' })
+  updatePlaystyle(
+    @Param('id') id: string,
+    @Param('playstyleId') playstyleId: string,
+    @Body() body: { title?: string; description?: string; active?: boolean },
+  ) {
+    return this.studentsService.updatePlaystyle(id, playstyleId, body);
+  }
+
+  @Delete(':id/playstyles/:playstyleId')
+  @ApiOperation({ summary: 'Remove a playstyle from a student' })
+  deletePlaystyle(
+    @Param('id') id: string,
+    @Param('playstyleId') playstyleId: string,
+  ) {
+    return this.studentsService.deletePlaystyle(id, playstyleId);
+  }
+
+  // --- AI Report ---
+  @Post(':id/ai-report')
+  @ApiOperation({ summary: 'Generate AI Scout Report for a student via Gemini API' })
+  generateAiReport(@Param('id') id: string) {
+    return this.studentsService.generateAiReport(id);
+  }
 }

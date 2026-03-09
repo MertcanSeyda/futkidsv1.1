@@ -11,6 +11,7 @@ import {
     PlayCircle
 } from "lucide-react";
 import { PlayerFIFA } from "@/components/PlayerFIFA";
+import { PlayerDetailedStats, StatCategory, PlayerTrait, CoachNote } from "@/components/PlayerDetailedStats";
 
 export function PlayerDashboard({ user }: { user: any }) {
     const profile = user.playerProfile || {};
@@ -22,6 +23,87 @@ export function PlayerDashboard({ user }: { user: any }) {
         def: 45,
         phy: 70
     };
+
+    // --- Mock Data for Detailed Stats ---
+    const detailedStats: StatCategory[] = [
+        {
+            label: "HIZ",
+            baseValue: stats.pac,
+            subStats: [
+                { name: "Hızlanma", value: 84 },
+                { name: "Sprint Hızı", value: 95 }
+            ]
+        },
+        {
+            label: "ŞUT",
+            baseValue: stats.sho,
+            subStats: [
+                { name: "Pozisyon Alma", value: 48 },
+                { name: "Bitiricilik", value: 43 },
+                { name: "Şut Gücü", value: 59 },
+                { name: "Uzaktan Şut", value: 57 },
+                { name: "Vole", value: 47 },
+                { name: "Penaltı", value: 39 }
+            ]
+        },
+        {
+            label: "PAS",
+            baseValue: stats.pas,
+            subStats: [
+                { name: "Görüş", value: 55 },
+                { name: "Orta Açma", value: 58 },
+                { name: "Serbest Vuruş", value: 34 },
+                { name: "Kısa Pas", value: 76 },
+                { name: "Uzun Pas", value: 74 },
+                { name: "Kavis", value: 37 }
+            ]
+        },
+        {
+            label: "TOP SÜRME",
+            baseValue: stats.dri,
+            subStats: [
+                { name: "Çeviklik", value: 59 },
+                { name: "Denge", value: 49 },
+                { name: "Reaksiyon", value: 82 },
+                { name: "Top Kontrolü", value: 75 },
+                { name: "Top Sürme", value: 73 },
+                { name: "Soğukkanlılık", value: 81 }
+            ]
+        },
+        {
+            label: "SAVUNMA",
+            baseValue: stats.def,
+            subStats: [
+                { name: "Top Kesme", value: 82 },
+                { name: "Kafa Vuruşu", value: 76 },
+                { name: "Savunma Fark.", value: 82 },
+                { name: "Ayakta Müdahale", value: 83 },
+                { name: "Kayarak Müdahale", value: 85 }
+            ]
+        },
+        {
+            label: "FİZİK",
+            baseValue: stats.phy,
+            subStats: [
+                { name: "Zıplama", value: 92 },
+                { name: "Dayanıklılık", value: 69 },
+                { name: "Güç", value: 85 },
+                { name: "Agresiflik", value: 78 }
+            ]
+        }
+    ];
+
+    const traits: PlayerTrait[] = [
+        { id: "1", name: "Hızlı Dribbling", description: "Topla beraber koşarken maksimum hıza daha çabuk ulaşır ve momentum kaybetmez." },
+        { id: "2", name: "Oyun Kurucu", description: "Uzun paslarda ve oyun yönünü değiştirmede yüksek başarı oranına sahiptir." },
+        { id: "3", name: "Frikik Ustası", description: "Serbest vuruşlarda topa ekstra kavis verebilir." },
+        { id: "4", name: "Zihinsel Dayanıklılık", description: "Maçın son anlarında kondisyon kaybına rağmen karar mekanizması etkilenmez." }
+    ];
+
+    const initialNotes: CoachNote[] = [
+        { id: "1", text: "Son maçta topla çıkışlarda başarılıydı ama pas tercihlerini biraz daha erken yapmalı.", date: new Date(Date.now() - 86400000 * 2), author: "Koç" },
+        { id: "2", text: "Fiziksel gelişim programına harfiyen uyuyor. İkili mücadelelerdeki başarısı arttı.", date: new Date(Date.now() - 86400000 * 5), author: "Koç" }
+    ];
 
     return (
         <div className="space-y-10">
@@ -84,6 +166,15 @@ export function PlayerDashboard({ user }: { user: any }) {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Detailed Stats Card (FIFA Style Bottom Section) */}
+            <div className="w-full mt-6">
+                <PlayerDetailedStats 
+                    stats={detailedStats}
+                    traits={traits}
+                    initialNotes={initialNotes}
+                />
             </div>
         </div>
     );

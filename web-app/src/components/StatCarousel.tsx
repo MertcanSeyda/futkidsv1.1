@@ -93,7 +93,7 @@ export default function StatCarousel({ items }: StatCarouselProps) {
                     <button
                         key={i}
                         onClick={() => setCurrentIndex(i)}
-                        className={`h-1.5 rounded-full transition-all duration-500 ${i === currentIndex ? "w-10 bg-indigo-500" : "w-3 bg-white/10 hover:bg-white/20"
+                        className={`h-1.5 rounded-full transition-all duration-500 ${i === currentIndex ? "w-10 bg-white/40" : "w-3 bg-white/10 hover:bg-white/20"
                             }`}
                     />
                 ))}
