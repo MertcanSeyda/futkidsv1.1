@@ -616,8 +616,8 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
             </div>
 
             {/* AI Prompt Bar */}
-            <div className="w-full flex items-center gap-3 bg-indigo-600/10 p-2 rounded-xl border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
-                <div className="p-2 bg-indigo-600 text-white rounded-lg">
+            <div className="w-full flex items-center gap-3 bg-white/10/10 p-2 rounded-xl border border-white/20/20 shadow-lg shadow-white/5">
+                <div className="p-2 bg-white/10 text-white rounded-lg">
                     <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
                 <input
@@ -631,7 +631,7 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
                 <button
                     onClick={handleAiGenerate}
                     disabled={isGenerating || !aiPrompt.trim()}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${isGenerating ? 'bg-gray-700 text-gray-400' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'}`}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${isGenerating ? 'bg-gray-700 text-gray-400' : 'bg-white/10 hover:bg-white/10 text-white shadow-lg shadow-white/20'}`}
                 >
                     {isGenerating ? 'Üretiliyor...' : 'Simüle Et'}
                 </button>
@@ -644,13 +644,13 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
                     <div className="flex bg-white/5 p-1 rounded-xl">
                         <button
                             onClick={() => setActiveSidebarTab('players')}
-                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeSidebarTab === 'players' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-white'}`}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeSidebarTab === 'players' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}
                         >
                             Oyuncular
                         </button>
                         <button
                             onClick={() => setActiveSidebarTab('equipment')}
-                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeSidebarTab === 'equipment' ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-white'}`}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeSidebarTab === 'equipment' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}
                         >
                             Ekipmanlar
                         </button>
@@ -662,16 +662,16 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
                                 <button
                                     key={s._id}
                                     onClick={() => addToken('player', { label: s.fullName.charAt(0), studentId: s._id })}
-                                    className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-indigo-600/20 border border-white/5 hover:border-indigo-600/30 rounded-xl transition-all group"
+                                    className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10/20 border border-white/5 hover:border-white/10/30 rounded-xl transition-all group"
                                 >
-                                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-xs text-white">
+                                    <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center font-black text-xs text-white">
                                         {s.fullName.charAt(0)}
                                     </div>
                                     <div className="flex flex-col items-start overflow-hidden">
                                         <span className="text-[10px] font-bold text-white truncate w-full">{s.fullName}</span>
                                         <span className="text-[8px] text-gray-500 uppercase tracking-widest">{s.position}</span>
                                     </div>
-                                    <Plus className="w-3 h-3 ml-auto text-gray-600 group-hover:text-indigo-400" />
+                                    <Plus className="w-3 h-3 ml-auto text-gray-600 group-hover:text-gray-400" />
                                 </button>
                             ))
                         ) : (
@@ -735,9 +735,9 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
                                 className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center font-bold text-xs shadow-lg transition-transform 
                                     ${mode === 'move' && !isPlaying ? 'cursor-grab active:cursor-grabbing hover:scale-110' : ''}
                                     ${mode === 'delete' ? 'cursor-pointer hover:bg-red-600/50 hover:scale-110 ring-2 ring-red-500/50' : ''}
-                                    ${token.type === 'home' || token.type === 'player' ? 'bg-indigo-600 text-white ring-2 ring-white/50' :
+                                    ${token.type === 'home' || token.type === 'player' ? 'bg-white/10 text-white ring-2 ring-white/50' :
                                         token.type === 'away' ? 'bg-red-600 text-white ring-2 ring-white/50' :
-                                            token.type === 'equipment' ? 'bg-black/80 ring-2 ring-indigo-500/30' :
+                                            token.type === 'equipment' ? 'bg-black/80 ring-2 ring-white/30' :
                                                 'bg-white text-gray-900 ring-2 ring-gray-300'}`}
                                 style={{
                                     left: `${(token.x / BOARD_WIDTH) * 100}%`,
@@ -791,9 +791,9 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
                         <button
                             key={tactic._id}
                             onClick={() => loadTactic(tactic)}
-                            className="bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 hover:border-indigo-500/50 transition-all text-left group"
+                            className="bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 hover:border-white/20/50 transition-all text-left group"
                         >
-                            <div className="text-sm font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors truncate">{tactic.name}</div>
+                            <div className="text-sm font-bold text-white mb-1 group-hover:text-gray-400 transition-colors truncate">{tactic.name}</div>
                             <div className="text-[10px] text-gray-500 truncate">{tactic.description || 'Açıklama yok'}</div>
                         </button>
                     ))}
@@ -823,13 +823,13 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
                                         type="text"
                                         value={tacticName}
                                         onChange={(e) => setTacticName(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-white/20"
                                         placeholder="Örn: Korner Organizasyonu"
                                     />
                                 </div>
                                 <div className="flex gap-3">
                                     <button onClick={() => setShowSaveModal(false)} className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-semibold text-white transition-all">İptal</button>
-                                    <button onClick={saveTactic} className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold text-white transition-all">Kaydet</button>
+                                    <button onClick={saveTactic} className="flex-1 px-4 py-3 bg-white/10 hover:bg-white/10 rounded-xl font-semibold text-white transition-all">Kaydet</button>
                                 </div>
                             </div>
                         </div>
@@ -850,13 +850,13 @@ export default function TacticsBoard({ students = [] }: { students?: any[] }) {
                             <div className="flex gap-4 mb-4 border-b border-white/10 pb-4">
                                 <button
                                     onClick={() => setActiveListTab('my')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeListTab === 'my' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeListTab === 'my' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
                                 >
                                     Kayıtlı Taktiklerim
                                 </button>
                                 <button
                                     onClick={() => setActiveListTab('presets')}
-                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeListTab === 'presets' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeListTab === 'presets' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
                                 >
                                     Hazır Taktikler
                                 </button>
@@ -910,7 +910,7 @@ function ToolButton({ active, onClick, icon, label }: any) {
     return (
         <button
             onClick={onClick}
-            className={`p-2 rounded-lg transition-all flex items-center gap-2 ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+            className={`p-2 rounded-lg transition-all flex items-center gap-2 ${active ? 'bg-white/10 text-white shadow-lg shadow-white/25' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
             title={label}
         >
             {icon}

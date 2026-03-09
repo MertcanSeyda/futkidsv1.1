@@ -13,6 +13,39 @@ import PlayerCard from "@/components/PlayerCard";
 import TacticsBoard from "@/components/TacticsBoard";
 import StatCarousel from "@/components/StatCarousel";
 import PremiumStatCard from "@/components/PremiumStatCard";
+import { PlayerDetailedStats, StatCategory, CoachNote } from "@/components/PlayerDetailedStats";
+import PlayerCardSummary from "@/components/PlayerCardSummary";
+
+// Helper to calculate category from birth date (U9 to U19)
+const calculateCategoryFromDate = (dateString: string): string => {
+    if (!dateString) return "";
+    
+    // Create UTC date strictly from the YYYY-MM-DD input
+    const [year, month, day] = dateString.split('-');
+    const birthDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+    if (isNaN(birthDate.getTime())) return "";
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    if (age <= 9) return "U9";
+    if (age === 10) return "U10";
+    if (age === 11) return "U11";
+    if (age === 12) return "U12";
+    if (age === 13) return "U13";
+    if (age === 14) return "U14";
+    if (age === 15) return "U15";
+    if (age === 16) return "U16";
+    if (age === 17) return "U17";
+    if (age === 18) return "U18";
+    if (age >= 19) return "U19";
+    
+    return "";
+};
 
 interface Student {
     _id: string;
@@ -197,15 +230,15 @@ export default function CoachDashboard() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#050510] flex items-center justify-center">
-                <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+            <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-white/20/30 border-t-white rounded-full animate-spin" />
             </div>
         );
     }
 
     if (students.length === 0) {
         return (
-            <div className="min-h-screen bg-[#050510] flex items-center justify-center p-4 font-sans">
+            <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4 font-sans">
                 <div className="text-center max-w-sm">
                     <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
                         <Users className="w-10 h-10 text-gray-500" />
@@ -214,7 +247,7 @@ export default function CoachDashboard() {
                     <p className="text-gray-500 mb-10 text-sm leading-relaxed">Akademinizde henüz kayıtlı sporcu yok. Analizlere başlamak için ilk takımınızı veya oyuncularınızı ekleyin.</p>
                     <button
                         onClick={handleLogout}
-                        className="w-full px-8 py-4 bg-indigo-600 text-white hover:bg-indigo-500 transition-all font-semibold rounded-2xl shadow-lg shadow-indigo-600/20"
+                        className="w-full px-8 py-4 bg-white/10 text-white hover:bg-white/10 transition-all font-semibold rounded-2xl shadow-lg shadow-white/20"
                     >
                         Çıkış Yap
                     </button>
@@ -234,16 +267,16 @@ export default function CoachDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#050510] text-[#E0E0E0] font-sans selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-[#000000] text-[#E0E0E0] font-sans selection:bg-white/10/30">
             {/* Top Navigation Bar */}
-            <nav className="sticky top-0 z-[60] bg-[#0A0B1E]/80 backdrop-blur-2xl border-b border-white/5 px-4 lg:px-10 py-4">
+            <nav className="sticky top-0 z-[60] bg-[#0a0a0a]/80 backdrop-blur-2xl border-b border-white/5 px-4 lg:px-10 py-4">
                 <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-4 lg:gap-8">
                     {/* Brand */}
                     <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-                        <div className="w-8 h-8 lg:w-9 lg:h-9 bg-indigo-600 rounded-lg lg:rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+                        <div className="w-8 h-8 lg:w-9 lg:h-9 bg-white/10 rounded-lg lg:rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                             <Award className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
                         </div>
-                        <span className="text-sm lg:text-lg font-black tracking-tighter text-white uppercase italic">FUTKIDS <span className="hidden sm:inline text-indigo-500/80 font-medium lowercase">analytics</span></span>
+                        <span className="text-sm lg:text-lg font-black tracking-tighter text-white uppercase italic">FUTKIDS <span className="hidden sm:inline text-gray-400/80 font-medium lowercase">analytics</span></span>
                     </div>
 
                     {/* Desktop Menu */}
@@ -252,7 +285,7 @@ export default function CoachDashboard() {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === item.id ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "text-gray-400 hover:text-white hover:bg-white/5"
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === item.id ? "bg-white/10 text-white shadow-lg shadow-white/20" : "text-gray-400 hover:text-white hover:bg-white/5"
                                     }`}
                             >
                                 {item.icon}
@@ -265,7 +298,7 @@ export default function CoachDashboard() {
                     <div className="flex items-center gap-2 lg:gap-4">
                         <div className="hidden md:flex flex-col items-end mr-2">
                             <span className="text-xs font-bold text-white leading-none">{user?.fullName}</span>
-                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-1">Antrenör</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Antrenör</span>
                         </div>
                         <button className="p-2 lg:p-2.5 bg-white/5 text-gray-400 hover:text-white border border-white/5 transition-all rounded-lg lg:rounded-xl">
                             <Bell className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
@@ -286,7 +319,7 @@ export default function CoachDashboard() {
                         <button
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${activeTab === item.id ? "bg-indigo-600 text-white" : "text-gray-400 bg-white/5"
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${activeTab === item.id ? "bg-white/10 text-white" : "text-gray-400 bg-white/5"
                                 }`}
                         >
                             <span className="w-3 h-3 text-current">{item.icon}</span>
@@ -413,6 +446,60 @@ function PlayersTab({
     const [parents, setParents] = useState<any[]>([]);
     const [loadingParents, setLoadingParents] = useState(false);
 
+    const formatStatsForDetailed = (stats: any): StatCategory[] => {
+        const s = stats || { pace: 50, shooting: 50, passing: 50, dribbling: 50, defending: 50, physical: 50 };
+        return [
+            {
+                label: "HIZ",
+                baseValue: s.pace,
+                subStats: [
+                    { name: "Hızlanma", value: Math.max(0, s.pace - 2) },
+                    { name: "Sprint Hızı", value: Math.min(99, s.pace + 2) }
+                ]
+            },
+            {
+                label: "ŞUT",
+                baseValue: s.shooting,
+                subStats: [
+                    { name: "Bitiricilik", value: s.shooting },
+                    { name: "Şut Gücü", value: Math.min(99, s.shooting + 4) }
+                ]
+            },
+            {
+                label: "PAS",
+                baseValue: s.passing,
+                subStats: [
+                    { name: "Kısa Pas", value: s.passing },
+                    { name: "Uzun Pas", value: Math.max(0, s.passing - 3) }
+                ]
+            },
+            {
+                label: "TOP SÜRME",
+                baseValue: s.dribbling,
+                subStats: [
+                    { name: "Çeviklik", value: s.dribbling },
+                    { name: "Top Kontrolü", value: Math.min(99, s.dribbling + 2) }
+                ]
+            },
+            {
+                label: "SAVUNMA",
+                baseValue: s.defending,
+                subStats: [
+                    { name: "Top Kesme", value: s.defending },
+                    { name: "Ayakta Müdahale", value: Math.min(99, s.defending + 1) }
+                ]
+            },
+            {
+                label: "FİZİK",
+                baseValue: s.physical,
+                subStats: [
+                    { name: "Dayanıklılık", value: s.physical },
+                    { name: "Güç", value: Math.max(0, s.physical - 3) }
+                ]
+            }
+        ];
+    };
+
     const initialPlayerState = {
         id: "",
         fullName: "",
@@ -453,8 +540,8 @@ function PlayersTab({
 
     const handleAddPlayer = async () => {
         try {
-            if (!newPlayer.fullName || !newPlayer.birthDate || !newPlayer.position) {
-                alert("Lütfen zorunlu alanları doldurun (Ad Soyad, Doğum Tarihi, Pozisyon).");
+            if (!newPlayer.fullName || !newPlayer.position) {
+                alert("Lütfen zorunlu alanları doldurun (Ad Soyad, Mevki).");
                 return;
             }
 
@@ -552,7 +639,7 @@ function PlayersTab({
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="text-center lg:text-left">
-                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">PERSONEL <span className="text-indigo-500">REHBERİ</span></h2>
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">PERSONEL <span className="text-gray-400">REHBERİ</span></h2>
                     <div className="text-sm text-gray-500 font-bold uppercase tracking-widest mt-2">{students.length} SPORCU KAYITLI</div>
                 </div>
                 <button
@@ -560,243 +647,462 @@ function PlayersTab({
                         fetchParentsForDropdown();
                         setShowAddModal(true);
                     }}
-                    className="w-full lg:w-auto flex items-center justify-center gap-4 px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-indigo-500 hover:shadow-[0_20px_40px_rgba(79,70,229,0.3)] shadow-2xl"
+                    className="w-full lg:w-auto flex items-center justify-center gap-4 px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-gray-200 hover:shadow-[0_20px_40px_rgba(255,255,255,0.15)] shadow-2xl"
                 >
                     <UserPlus className="w-4 h-4" />
                     YENİ SPORCU KAYDET
                 </button>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 bg-[#0A0B1E] border border-white/5 p-4 rounded-[32px] shadow-2xl">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                    <input
-                        type="text"
-                        placeholder="Sporcu ara..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-black/20 border border-white/5 rounded-2xl text-white placeholder:text-gray-600 focus:border-indigo-500/50 focus:bg-black/40 focus:outline-none transition-all text-sm font-bold italic"
-                    />
-                </div>
-                <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-6 py-4 bg-black/20 border border-white/5 rounded-2xl text-white font-black text-[10px] uppercase tracking-widest focus:border-indigo-500/50 focus:bg-black/40 focus:outline-none transition-all cursor-pointer appearance-none"
-                >
-                    <option value="all">TÜM KATEGORİLER</option>
-                    {categories.map((cat: string) => (
-                        <option key={cat} value={cat}>{cat} KADROSU</option>
-                    ))}
-                </select>
-            </div>
+            {/* === SPLIT LAYOUT: Left = Player Details, Right = Player List Sidebar === */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            {/* Players List View */}
-            <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto scrollbar-hide">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead>
-                            <tr className="border-b border-white/5 bg-black/20">
-                                <th className="px-8 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Sporcu</th>
-                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Mevki</th>
-                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Kategori</th>
-                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Yaş</th>
-                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Fizik</th>
-                                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Reyting</th>
-                                <th className="px-8 py-6 text-right text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
+                {/* LEFT SIDE: Selected Player Details */}
+                <div className="col-span-1 lg:col-span-8 xl:col-span-9 space-y-4">
+                    {selectedStudent ? (
+                        <>
+                            {/* FUTBIN Upper Section: Player Card + Info */}
+                            <PlayerCardSummary
+                                fullName={selectedStudent.fullName}
+                                position={selectedStudent.position}
+                                teamCategory={selectedStudent.teamCategory}
+                                birthDate={selectedStudent.birthDate}
+                                height={selectedStudent.height}
+                                weight={selectedStudent.weight}
+                                stats={selectedStudent.stats}
+                                rating={calculateRating(selectedStudent.stats)}
+                                photoUrl={selectedStudent.photoUrl}
+                            />
+
+                            {/* FUTBIN Lower Section: Detailed Stats */}
+                            <PlayerDetailedStats
+                                stats={formatStatsForDetailed(selectedStudent.stats)}
+                                traits={[]}
+                                playerInfo={selectedStudent}
+                                initialNotes={selectedStudent.coachComments?.map((c: any) => ({
+                                    id: c._id || Math.random().toString(),
+                                    text: c.comment,
+                                    date: new Date(c.date),
+                                    author: c.coach?.fullName || "Koç"
+                                })) || []}
+                                onSaveNote={async (noteText: string) => {
+                                    try {
+                                        const updated = await api.post(`/students/${selectedStudent._id}/comments`, {
+                                            coachId: user._id,
+                                            comment: noteText,
+                                        });
+                                        setSelectedStudent(updated.data);
+                                    } catch (error) {
+                                        console.error("Not eklenemedi:", error);
+                                    }
+                                }}
+                                onUpdateNote={async (noteId: string, newText: string) => {
+                                    try {
+                                        const updated = await api.put(`/students/${selectedStudent._id}/comments/${noteId}`, {
+                                            comment: newText,
+                                        });
+                                        setSelectedStudent(updated.data);
+                                    } catch (error) {
+                                        console.error("Not güncellenemedi:", error);
+                                    }
+                                }}
+                                onDeleteNote={async (noteId: string) => {
+                                    try {
+                                        const updated = await api.delete(`/students/${selectedStudent._id}/comments/${noteId}`);
+                                        setSelectedStudent(updated.data);
+                                    } catch (error) {
+                                        console.error("Not silinemedi:", error);
+                                    }
+                                }}
+                                playstyles={selectedStudent.playstyles || []}
+                                onAddPlaystyle={async (title: string, description: string) => {
+                                    try {
+                                        const updated = await api.post(`/students/${selectedStudent._id}/playstyles`, { title, description });
+                                        setSelectedStudent(updated.data);
+                                    } catch (error) {
+                                        console.error("Oyun stili eklenemedi:", error);
+                                    }
+                                }}
+                                onDeletePlaystyle={async (playstyleId: string) => {
+                                    try {
+                                        const updated = await api.delete(`/students/${selectedStudent._id}/playstyles/${playstyleId}`);
+                                        setSelectedStudent(updated.data);
+                                    } catch (error) {
+                                        console.error("Oyun stili silinemedi:", error);
+                                    }
+                                }}
+                                onTogglePlaystyle={async (playstyleId: string, active: boolean) => {
+                                    try {
+                                        const updated = await api.put(`/students/${selectedStudent._id}/playstyles/${playstyleId}`, { active });
+                                        setSelectedStudent(updated.data);
+                                    } catch (error) {
+                                        console.error("Oyun stili güncellenemedi:", error);
+                                    }
+                                }}
+                            />
+                        </>
+                    ) : (
+                        <div className="bg-[#0a0a0a] border border-white/5 rounded-[32px] p-8 min-h-[500px]">
+                            {/* AI Dashboard Header */}
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tight">FUTKIDS <span className="text-gray-400">AI Analiz</span></h3>
+                                    <p className="text-gray-500 text-[11px] font-bold uppercase tracking-widest mt-1">Performans Takip Merkezi</p>
+                                </div>
+                                <div className="px-4 py-2 bg-white/10/10 border border-white/20/20 rounded-xl">
+                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest">AI Destekli</span>
+                                </div>
+                            </div>
+
+                            {/* Quick Stats Row */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center">
+                                    <div className="text-2xl font-black text-emerald-400 italic">{students.length}</div>
+                                    <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Toplam Sporcu</div>
+                                </div>
+                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center">
+                                    <div className="text-2xl font-black text-blue-400 italic">
+                                        {students.length > 0 ? Math.round(students.reduce((sum: number, s: Student) => sum + calculateRating(s.stats), 0) / students.length) : 0}
+                                    </div>
+                                    <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Ort. Reyting</div>
+                                </div>
+                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center">
+                                    <div className="text-2xl font-black text-amber-400 italic">
+                                        {students.length > 0 ? Math.max(...students.map((s: Student) => calculateRating(s.stats))) : 0}
+                                    </div>
+                                    <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">En Yüksek</div>
+                                </div>
+                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center">
+                                    <div className="text-2xl font-black text-purple-400 italic">
+                                        {new Set(students.map((s: Student) => s.teamCategory || 'U15')).size}
+                                    </div>
+                                    <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Kategori</div>
+                                </div>
+                            </div>
+
+                            {/* Feature Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                <div className="bg-gradient-to-br from-indigo-600/10 to-transparent border border-white/20/10 rounded-2xl p-5 group hover:border-white/20/30 transition-all cursor-pointer">
+                                    <div className="w-10 h-10 bg-white/10/20 rounded-xl flex items-center justify-center mb-3">
+                                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                    </div>
+                                    <h4 className="text-white text-[12px] font-black uppercase tracking-wider mb-1">Performans Raporu</h4>
+                                    <p className="text-gray-500 text-[10px] leading-relaxed">AI destekli detaylı performans analizi ve gelişim raporu oluşturun.</p>
+                                </div>
+                                <div className="bg-gradient-to-br from-emerald-600/10 to-transparent border border-emerald-500/10 rounded-2xl p-5 group hover:border-emerald-500/30 transition-all cursor-pointer">
+                                    <div className="w-10 h-10 bg-emerald-600/20 rounded-xl flex items-center justify-center mb-3">
+                                        <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                    </div>
+                                    <h4 className="text-white text-[12px] font-black uppercase tracking-wider mb-1">Gelişim Takibi</h4>
+                                    <p className="text-gray-500 text-[10px] leading-relaxed">Haftalık ve aylık performans değişimlerini takip edin.</p>
+                                </div>
+                                <div className="bg-gradient-to-br from-amber-600/10 to-transparent border border-amber-500/10 rounded-2xl p-5 group hover:border-amber-500/30 transition-all cursor-pointer">
+                                    <div className="w-10 h-10 bg-amber-600/20 rounded-xl flex items-center justify-center mb-3">
+                                        <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                                    </div>
+                                    <h4 className="text-white text-[12px] font-black uppercase tracking-wider mb-1">AI Öneriler</h4>
+                                    <p className="text-gray-500 text-[10px] leading-relaxed">Oyunculara özel antrenman ve gelişim önerileri alın.</p>
+                                </div>
+                            </div>
+
+                            {/* CTA */}
+                            <div className="text-center py-6 border-t border-white/5">
+                                <Users className="w-10 h-10 text-gray-700 mx-auto mb-3 opacity-30" />
+                                <p className="text-gray-500 font-bold uppercase tracking-[0.15em] text-[11px]">Detaylı analiz için sağ taraftan bir sporcu seçin</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* RIGHT SIDE: Player Selection Sidebar */}
+                <div className="col-span-1 lg:col-span-4 xl:col-span-3">
+                    <div className="bg-[#0a0a0a] border border-white/5 rounded-[24px] overflow-hidden shadow-2xl sticky top-6">
+                        {/* Sidebar Header */}
+                        <div className="p-4 border-b border-white/5 bg-black/20">
+                            <h3 className="text-[11px] font-black text-white uppercase tracking-[0.2em] mb-3">Kadro Listesi</h3>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600" />
+                                <input
+                                    type="text"
+                                    placeholder="Sporcu ara..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-2.5 bg-black/30 border border-white/5 rounded-xl text-white placeholder:text-gray-600 focus:border-white/20/50 focus:outline-none transition-all text-[11px] font-bold"
+                                />
+                            </div>
+                            <select
+                                value={categoryFilter}
+                                onChange={(e) => setCategoryFilter(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 bg-black/30 border border-white/5 rounded-xl text-white font-black text-[9px] uppercase tracking-widest focus:border-white/20/50 focus:outline-none transition-all cursor-pointer appearance-none"
+                            >
+                                <option value="all">TÜM KATEGORİLER</option>
+                                {categories.map((cat: string) => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Inline Registration/Edit Form - MOVED UP TO PUSH DOWN LIST */}
+                        {showAddModal && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="overflow-hidden border-b border-white/5"
+                            >
+                                {/* Background Image container for the form */}
+                                <div 
+                                    className="p-5 relative"
+                                    style={{
+                                        backgroundImage: 'url(/pitch-bg.jpg)',
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
+                                >
+                                    {/* Overlay to make white form readable on top of background */}
+                                    <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
+
+                                    {/* Actual form container */}
+                                    <div className="relative bg-white/95 backdrop-blur-xl border border-white p-6 rounded-2xl shadow-xl">
+                                        {/* Form Header */}
+                                        <div className="flex items-center justify-between mb-5">
+                                            <div className="flex items-center gap-2">
+                                                <UserPlus className="w-4 h-4 text-gray-700" />
+                                                <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider">
+                                                    {newPlayer.id ? "Profil Düzenle" : "Yeni Kayıt"}
+                                                </h4>
+                                            </div>
+                                            <button onClick={() => setShowAddModal(false)} className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-all shadow-sm">
+                                                <X className="w-4 h-4 text-gray-600" />
+                                            </button>
+                                        </div>
+
+                                    {/* Form Fields */}
+                                    <div className="space-y-3">
+                                        {/* Ad Soyad */}
+                                        <div>
+                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block">AD SOYAD *</label>
+                                            <input
+                                                type="text"
+                                                value={newPlayer.fullName}
+                                                onChange={(e) => setNewPlayer({ ...newPlayer, fullName: e.target.value })}
+                                                placeholder="Sporcu Adı Soyadı"
+                                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-200 transition-all placeholder:text-gray-400"
+                                            />
+                                        </div>
+
+                                        {/* E-posta */}
+                                        <div>
+                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">E-POSTA <span className="font-normal">(isteğe bağlı)</span></label>
+                                            <input
+                                                type="email"
+                                                value={newPlayer.email}
+                                                onChange={(e) => setNewPlayer({ ...newPlayer, email: e.target.value })}
+                                                placeholder="ornek@mail.com"
+                                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-200 transition-all placeholder:text-gray-400"
+                                            />
+                                        </div>
+
+                                        {/* Mevki + Kategori */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 block">MEVKİ *</label>
+                                                <select
+                                                    value={newPlayer.position}
+                                                    onChange={(e) => setNewPlayer({ ...newPlayer, position: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-400 transition-all appearance-none cursor-pointer"
+                                                >
+                                                    {["GK","CB","LB","RB","CM","CDM","CAM","LW","RW","ST"].map(p => <option key={p} value={p}>{p}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">KATEGORİ</label>
+                                                <select
+                                                    value={newPlayer.teamCategory}
+                                                    onChange={(e) => setNewPlayer({ ...newPlayer, teamCategory: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-400 transition-all appearance-none cursor-pointer"
+                                                >
+                                                    <option value="">Seçiniz</option>
+                                                    {["U9","U10","U11","U12","U13","U14","U15","U16","U17","U18","U19"].map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Doğum Tarihi */}
+                                        <div>
+                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">DOĞUM TARİHİ <span className="font-normal">(isteğe bağlı)</span></label>
+                                            <input
+                                                type="date"
+                                                value={newPlayer.birthDate}
+                                                onChange={(e) => {
+                                                    const date = e.target.value;
+                                                    const newCategory = calculateCategoryFromDate(date);
+                                                    setNewPlayer({ 
+                                                        ...newPlayer, 
+                                                        birthDate: date,
+                                                        ...(newCategory ? { teamCategory: newCategory } : {})
+                                                    });
+                                                }}
+                                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-800 transition-all shadow-sm"
+                                            />
+                                        </div>
+
+                                        {/* Boy + Kilo */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">BOY (cm)</label>
+                                                <input
+                                                    type="number"
+                                                    value={newPlayer.height}
+                                                    onChange={(e) => setNewPlayer({ ...newPlayer, height: e.target.value })}
+                                                    placeholder="-"
+                                                    className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-400 transition-all placeholder:text-gray-400"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">KİLO (kg)</label>
+                                                <input
+                                                    type="number"
+                                                    value={newPlayer.weight}
+                                                    onChange={(e) => setNewPlayer({ ...newPlayer, weight: e.target.value })}
+                                                    placeholder="-"
+                                                    className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-400 transition-all placeholder:text-gray-400"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Veli Telefon */}
+                                        <div>
+                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">VELİ TELEFON <span className="font-normal">(isteğe bağlı)</span></label>
+                                            <input
+                                                type="tel"
+                                                value={newPlayer.phone}
+                                                onChange={(e) => setNewPlayer({ ...newPlayer, phone: e.target.value })}
+                                                placeholder="05XX XXX XX XX"
+                                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-400 transition-all placeholder:text-gray-400"
+                                            />
+                                        </div>
+
+                                        {/* Veli Dropdown */}
+                                        {parents.length > 0 && (
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block">KAYITLI VELİ</label>
+                                                <select
+                                                    value={newPlayer.parent}
+                                                    onChange={(e) => setNewPlayer({ ...newPlayer, parent: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-gray-800 transition-all appearance-none cursor-pointer shadow-sm"
+                                                >
+                                                    <option value="">Veli Seçin...</option>
+                                                    {parents.map((p: any) => <option key={p._id} value={p._id}>{p.fullName}</option>)}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex gap-2 mt-6">
+                                        <button
+                                            onClick={() => setShowAddModal(false)}
+                                            className="flex-1 px-4 py-3.5 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                                        >
+                                            İptal
+                                        </button>
+                                        <button
+                                            onClick={handleAddPlayer}
+                                            className="flex-1 px-4 py-3.5 bg-gray-900 text-white hover:bg-black rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                                        >
+                                            {newPlayer.id ? "Güncelle" : "Kaydet"}
+                                        </button>
+                                    </div>
+                                </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Player List */}
+                        <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
                             {students.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-8 py-20 text-center">
-                                        <Users className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                                        <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No matching athletes found</p>
-                                    </td>
-                                </tr>
+                                <div className="p-8 text-center">
+                                    <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest">Sporcu bulunamadı</p>
+                                </div>
                             ) : (
                                 students.map((student: Student) => {
                                     const rating = calculateRating(student.stats);
+                                    const isSelected = selectedStudent?._id === student._id;
                                     const ratingColor = rating >= 80 ? 'text-emerald-400' : rating >= 70 ? 'text-blue-400' : rating >= 60 ? 'text-amber-400' : 'text-gray-400';
                                     return (
-                                        <motion.tr
+                                        <div
                                             key={student._id}
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
                                             onClick={() => setSelectedStudent(student)}
+                                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all border-l-2 ${
+                                                isSelected
+                                                    ? 'bg-white/10/10 border-l-indigo-500'
+                                                    : 'border-l-transparent hover:bg-white/[0.02]'
+                                            }`}
                                         >
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-[#1A1B35] rounded-xl flex items-center justify-center text-lg font-black text-white italic border border-white/10 group-hover:border-indigo-500/50 transition-all">
-                                                        {student.fullName.charAt(0)}
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-white text-sm group-hover:text-indigo-400 transition-colors">{student.fullName}</span>
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">{student.teamCategory || 'U15'} Takımı</span>
-                                                    </div>
+                                            {/* Avatar */}
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black italic border transition-all flex-shrink-0 ${
+                                                isSelected 
+                                                    ? 'bg-white/10/20 border-white/20/50 text-gray-400' 
+                                                    : 'bg-[#111111] border-white/10 text-white'
+                                            }`}>
+                                                {student.fullName.charAt(0)}
+                                            </div>
+
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`font-bold text-[12px] truncate transition-colors ${isSelected ? 'text-gray-400' : 'text-white'}`}>
+                                                    {student.fullName}
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-center">
-                                                <span className="px-3 py-1 bg-white/5 border border-white/5 text-[10px] font-black text-gray-400 rounded-lg group-hover:text-white transition-colors">
-                                                    {student.position}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5 text-center">
-                                                <div className="px-3 py-1 bg-white/5 border border-white/5 text-[10px] font-black text-gray-400 rounded-lg group-hover:text-white transition-colors">
-                                                    {student.teamCategory || 'U15'}
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-[9px] font-bold text-gray-500 uppercase">{student.position}</span>
+                                                    <span className="text-[9px] text-gray-600">•</span>
+                                                    <span className="text-[9px] font-bold text-gray-500 uppercase">{student.teamCategory || 'U15'}</span>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-center">
-                                                <span className="text-sm font-bold text-gray-400 italic font-mono">{calculateAge(student.birthDate)}</span>
-                                            </td>
-                                            <td className="px-6 py-5 text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-[8px] font-black text-gray-600 uppercase">Boy</span>
-                                                        <span className="text-xs font-bold text-gray-400">{student.height || '--'}</span>
-                                                    </div>
-                                                    <div className="w-px h-4 bg-white/5" />
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-[8px] font-black text-gray-600 uppercase">Kilo</span>
-                                                        <span className="text-xs font-bold text-gray-400">{student.weight || '--'}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-center">
-                                                <div className={`text-2xl font-black italic tracking-tighter ${ratingColor}`}>
-                                                    {rating}
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5 text-right" onClick={(e) => e.stopPropagation()}>
-                                                <div className="flex items-center justify-end gap-2 text-[10px] font-black tracking-widest uppercase">
-                                                    <button
-                                                        onClick={() => handleEditClick(student)}
-                                                        className="p-3 bg-white/5 text-gray-400 hover:text-white hover:bg-indigo-600 rounded-xl transition-all border border-white/5 hover:border-indigo-500 shadow-xl"
-                                                        title="DÜZENLE"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeletePlayer(student._id)}
-                                                        className="p-3 bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-white/5 hover:border-red-500"
-                                                        title="SİL"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </motion.tr>
+                                            </div>
+
+                                            {/* Rating */}
+                                            <div className={`text-lg font-black italic tracking-tighter flex-shrink-0 ${ratingColor}`}>
+                                                {rating}
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex flex-col gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    onClick={() => handleEditClick(student)}
+                                                    className="p-1.5 bg-white/5 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    title="DÜZENLE"
+                                                >
+                                                    <Edit className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeletePlayer(student._id)}
+                                                    className="p-1.5 bg-white/5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    title="SİL"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     );
                                 })
                             )}
-                        </tbody>
-                    </table>
+                        </div>
+
+
+                    </div>
                 </div>
             </div>
 
             {/* Empty State */}
             {students.length === 0 && (
-                <div className="py-32 text-center bg-[#0A0B1E] border border-white/5 rounded-[32px]">
+                <div className="py-32 text-center bg-[#0a0a0a] border border-white/5 rounded-[32px]">
                     <Users className="w-16 h-16 text-gray-700 mx-auto mb-6 opacity-20" />
                     <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-sm">Veri Girişi Bekleniyor</p>
                 </div>
             )}
 
-            {/* Registration/Edit Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 bg-[#050510]/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-                    <div
-                        className="bg-[#0A0B1E] border border-white/10 rounded-3xl lg:rounded-[48px] p-6 lg:p-14 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_100px_rgba(0,0,0,0.5)] custom-scrollbar"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between mb-12">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center">
-                                    <UserPlus className="w-7 h-7 text-white" />
-                                </div>
-                                <h3 className="text-3xl font-black text-white italic tracking-tight uppercase">
-                                    {newPlayer.id ? "PROFİL DÜZENLE" : "YENİ KAYIT"}
-                                </h3>
-                            </div>
-                            <button onClick={() => setShowAddModal(false)} className="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center transition-all">
-                                <X className="w-6 h-6 text-gray-400" />
-                            </button>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            {/* Personal Info */}
-                            <div className="space-y-6">
-                                <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">Kişisel Bilgiler</h4>
-                                <div className="space-y-4">
-                                    <InputField label="AD SOYAD" value={newPlayer.fullName} onChange={(val: string) => setNewPlayer({ ...newPlayer, fullName: val })} placeholder="Sporcu Adı Soyadı" />
-                                    <InputField label="EMAIL" value={newPlayer.email} onChange={(val: string) => setNewPlayer({ ...newPlayer, email: val })} placeholder="ornek@mail.com" />
-                                    <InputField label="TELEFON" value={newPlayer.phone} onChange={(val: string) => setNewPlayer({ ...newPlayer, phone: val })} placeholder="05XX XXX XX XX" />
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <SelectField
-                                            label="MEVKİ"
-                                            value={newPlayer.position}
-                                            options={["GK", "CB", "LB", "RB", "CM", "CDM", "CAM", "LW", "RW", "ST"]}
-                                            onChange={(val: string) => setNewPlayer({ ...newPlayer, position: val })}
-                                        />
-                                        <SelectField
-                                            label="KATEGORİ"
-                                            value={newPlayer.teamCategory}
-                                            options={["U9", "U10", "U11", "U12", "U13", "U14", "U15", "U16", "U17", "U18", "U19"]}
-                                            onChange={(val: string) => setNewPlayer({ ...newPlayer, teamCategory: val })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Performance Stats */}
-                            <div className="space-y-6">
-                                <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">Performans Verileri</h4>
-                                <div className="grid grid-cols-2 gap-6 bg-white/[0.02] border border-white/5 p-8 rounded-[32px]">
-                                    {Object.keys(newPlayer.stats || {}).map((stat) => (
-                                        <div key={stat} className="space-y-2">
-                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{stat === 'pace' ? 'HIZ' : stat === 'shooting' ? 'ŞUT' : stat === 'passing' ? 'PAS' : stat === 'dribbling' ? 'DRI' : stat === 'defending' ? 'DEF' : 'FİZ'}</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="99"
-                                                value={newPlayer.stats[stat as keyof typeof newPlayer.stats]}
-                                                onChange={(e) => {
-                                                    const val = Math.min(99, Math.max(0, parseInt(e.target.value) || 0));
-                                                    setNewPlayer({
-                                                        ...newPlayer,
-                                                        stats: { ...newPlayer.stats, [stat]: val }
-                                                    });
-                                                }}
-                                                className="w-full bg-[#1A1B35] border border-white/10 rounded-xl px-4 py-3 text-white font-black text-lg focus:outline-none focus:border-indigo-500 transition-all text-center"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="bg-indigo-600/10 border border-indigo-600/20 rounded-2xl p-4 text-center">
-                                    <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-1">Tahmini Reyting</span>
-                                    <span className="text-3xl font-black text-white italic tracking-tighter">{calculateRating(newPlayer.stats)}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-6 mt-14">
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="flex-1 px-8 py-5 bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all"
-                            >
-                                İPTAL
-                            </button>
-                            <button
-                                onClick={handleAddPlayer}
-                                className="flex-1 px-8 py-5 bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_20px_40px_rgba(79,70,229,0.2)] hover:shadow-[0_20px_40px_rgba(79,70,229,0.4)] rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all"
-                            >
-                                {newPlayer.id ? "PROFİLİ GÜNCELLE" : "SPORCUYU KAYDET"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
@@ -820,22 +1126,26 @@ function InputField({ label, value, onChange, placeholder, type = "text" }: any)
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="w-full bg-[#1A1B35] border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition-all placeholder:text-gray-700"
+                className="w-full bg-[#111111] border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm focus:outline-none focus:border-white/20 transition-all placeholder:text-gray-700"
             />
         </div>
     );
 }
 
-function SelectField({ label, value, options, onChange }: any) {
+function SelectField({ label, value, options, onChange, optionLabels }: any) {
     return (
         <div className="space-y-2">
             <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">{label}</label>
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full bg-[#1A1B35] border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition-all appearance-none cursor-pointer"
+                className="w-full bg-[#111111] border border-white/10 rounded-xl px-5 py-3.5 text-white text-sm focus:outline-none focus:border-white/20 transition-all appearance-none cursor-pointer"
             >
-                {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                {options.map((opt: string, idx: number) => (
+                    <option key={opt || 'empty-' + idx} value={opt}>
+                        {optionLabels ? optionLabels[idx] : (opt || 'Seçiniz...')}
+                    </option>
+                ))}
             </select>
         </div>
     );
@@ -870,13 +1180,13 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
         return (
             <div className="space-y-12 animate-in fade-in duration-700">
                 <div className="flex flex-col gap-2">
-                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">TAKIM <span className="text-indigo-500">ÖZETİ</span></h2>
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">TAKIM <span className="text-gray-400">ÖZETİ</span></h2>
                     <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Yaş kategorilerine göre genel performans analizi</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                     {categoryData.length === 0 ? (
-                        <div className="col-span-full py-32 text-center bg-[#0A0B1E] border border-white/5 rounded-[40px]">
+                        <div className="col-span-full py-32 text-center bg-[#0a0a0a] border border-white/5 rounded-[40px]">
                             <p className="text-gray-500 font-black uppercase tracking-[0.2em] text-sm italic">VERİ AKIŞI BEKLENİYOR</p>
                         </div>
                     ) : (
@@ -888,12 +1198,12 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                                     setSelectedCategory(cat.name);
                                     setCurrentPage(1);
                                 }}
-                                className="group bg-[#0A0B1E] border border-white/5 p-8 lg:p-10 rounded-[40px] transition-all cursor-pointer relative overflow-hidden"
+                                className="group bg-[#0a0a0a] border border-white/5 p-8 lg:p-10 rounded-[40px] transition-all cursor-pointer relative overflow-hidden"
                             >
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 blur-3xl -z-10 group-hover:bg-indigo-600/10 transition-colors"></div>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10/5 blur-3xl -z-10 group-hover:bg-white/10/10 transition-colors"></div>
 
                                 <div className="flex items-center justify-between mb-8 lg:mb-12">
-                                    <div className="w-16 h-16 bg-[#1A1B35] border border-white/10 rounded-2xl flex items-center justify-center text-3xl font-black text-white italic shadow-2xl transition-transform group-hover:scale-110 group-hover:rotate-3">
+                                    <div className="w-16 h-16 bg-[#111111] border border-white/10 rounded-2xl flex items-center justify-center text-3xl font-black text-white italic shadow-2xl transition-transform group-hover:scale-110 group-hover:rotate-3">
                                         {cat.name}
                                     </div>
                                     <div className="px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/10">
@@ -909,7 +1219,7 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                                         </div>
                                         <div className="text-right flex flex-col">
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Ort. Reyting</span>
-                                            <span className="text-3xl font-black text-white italic border-b-4 border-indigo-500/20 leading-none">{cat.avgOVR}</span>
+                                            <span className="text-3xl font-black text-white italic border-b-4 border-white/20/20 leading-none">{cat.avgOVR}</span>
                                         </div>
                                     </div>
 
@@ -917,14 +1227,14 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${cat.avgOVR}%` }}
-                                            className="h-full bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
+                                            className="h-full bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.5)]"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="mt-10 pt-8 border-t border-white/5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all">
-                                    <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">DETAYLI ANALİZİ GÖR</span>
-                                    <ChevronRight className="w-5 h-5 text-indigo-400" />
+                                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest">DETAYLI ANALİZİ GÖR</span>
+                                    <ChevronRight className="w-5 h-5 text-gray-400" />
                                 </div>
                             </motion.div>
                         ))
@@ -932,14 +1242,14 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                 </div>
 
                 {/* Comparison Section */}
-                <div className="mt-20 bg-[#0A0B1E] border border-white/5 rounded-[50px] p-16 shadow-2xl overflow-hidden relative border-t-4 border-indigo-600/30">
+                <div className="mt-20 bg-[#0a0a0a] border border-white/5 rounded-[50px] p-16 shadow-2xl overflow-hidden relative border-t-4 border-white/10/30">
                     <div className="max-w-xl relative z-10">
-                        <h3 className="text-4xl font-black text-white tracking-tight mb-4 leading-none uppercase italic">KATEGORİ <span className="text-indigo-500">KIYASLAMASI</span></h3>
+                        <h3 className="text-4xl font-black text-white tracking-tight mb-4 leading-none uppercase italic">KATEGORİ <span className="text-gray-400">KIYASLAMASI</span></h3>
                         <p className="text-lg text-gray-500 font-bold mb-12 italic leading-relaxed">
                             Takımlarınızı teknik disiplinlere göre karşılaştırın ve gelişim fırsatlarını belirleyin.
                         </p>
                         <div className="flex gap-4">
-                            <button className="px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:shadow-[0_0_30px_rgba(79,70,229,0.4)] hover:-translate-y-1 transition-all">KIYASLAMAYI BAŞLAT</button>
+                            <button className="px-10 py-5 bg-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:-translate-y-1 transition-all">KIYASLAMAYI BAŞLAT</button>
                             <button className="px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all">VERİLERİ DIŞA AKTAR</button>
                         </div>
                     </div>
@@ -954,7 +1264,7 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
 
     return (
         <div className="space-y-10 animate-in fade-in duration-700">
-            <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-[40px] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
                 <div className="flex items-center gap-8">
                     <button
                         onClick={() => setSelectedCategory(null)}
@@ -963,7 +1273,7 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                         <ChevronRight className="w-6 h-6 rotate-180 transition-transform group-hover:-translate-x-1" />
                     </button>
                     <div>
-                        <h2 className="text-3xl font-black text-white tracking-tight uppercase italic leading-none">{selectedCategory} <span className="text-indigo-500">AKADEMİSİ</span></h2>
+                        <h2 className="text-3xl font-black text-white tracking-tight uppercase italic leading-none">{selectedCategory} <span className="text-gray-400">AKADEMİSİ</span></h2>
                         <p className="text-sm text-gray-500 font-bold mt-2 uppercase tracking-widest">Aktif Kadro / {filteredPlayers.length} Analiz Edilen Sporcu</p>
                     </div>
                 </div>
@@ -999,13 +1309,13 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                         animate={{ opacity: 1, y: 0 }}
                         whileHover={{ y: -10, boxShadow: "0 30px 60px rgba(0,0,0,0.5)" }}
                         onClick={() => onSelectPlayer(student)}
-                        className="bg-[#0A0B1E] border border-white/5 p-6 lg:p-8 group transition-all cursor-pointer relative rounded-[32px] overflow-hidden shadow-2xl"
+                        className="bg-[#0a0a0a] border border-white/5 p-6 lg:p-8 group transition-all cursor-pointer relative rounded-[32px] overflow-hidden shadow-2xl"
                     >
                         <div className="flex items-start justify-between mb-8">
-                            <div className="w-14 h-14 bg-[#1A1B35] border border-white/10 flex items-center justify-center font-black text-xl text-white italic rounded-2xl group-hover:bg-indigo-600 group-hover:rotate-6 transition-all shadow-2xl">
+                            <div className="w-14 h-14 bg-[#111111] border border-white/10 flex items-center justify-center font-black text-xl text-white italic rounded-2xl group-hover:bg-white/10 group-hover:rotate-6 transition-all shadow-2xl">
                                 {student.fullName.charAt(0)}
                             </div>
-                            <div className="text-right bg-black/20 border border-white/5 px-4 py-2 rounded-2xl group-hover:bg-indigo-600 transition-all">
+                            <div className="text-right bg-black/20 border border-white/5 px-4 py-2 rounded-2xl group-hover:bg-white/10 transition-all">
                                 <div className="text-2xl font-black text-white italic tracking-tighter leading-none">
                                     {calculateRating(student.stats)}
                                 </div>
@@ -1014,7 +1324,7 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                         </div>
 
                         <div className="space-y-1">
-                            <h3 className="text-lg font-black text-white leading-none truncate group-hover:text-indigo-400 transition-colors uppercase italic">
+                            <h3 className="text-lg font-black text-white leading-none truncate group-hover:text-gray-400 transition-colors uppercase italic">
                                 {student.fullName}
                             </h3>
                             <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2 bg-white/5 inline-block px-2 py-1 rounded-lg">
@@ -1025,7 +1335,7 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
                         <div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-3 gap-2">
                             {Object.entries(student.stats).slice(0, 3).map(([key, val]: [string, any]) => (
                                 <div key={key} className="flex flex-col">
-                                    <span className="text-sm font-black text-white border-b-2 border-indigo-500/10 italic leading-none mb-1">{val}</span>
+                                    <span className="text-sm font-black text-white border-b-2 border-white/20/10 italic leading-none mb-1">{val}</span>
                                     <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">{key === 'pace' ? 'HIZ' : key === 'shooting' ? 'ŞUT' : 'PAS'}</span>
                                 </div>
                             ))}
@@ -1040,17 +1350,17 @@ function StatsTab({ students, onSelectPlayer, calculateRating }: any) {
 function StatDetailModal({ student, onClose, calculateRating }: any) {
     const mockSeasonStats = [
         { label: "OYNANAN MAÇ", value: 14, icon: <Award className="w-4 h-4 text-emerald-400" /> },
-        { label: "TOPLAM DAKİKA", value: "1.120", icon: <TrendingUp className="w-4 h-4 text-indigo-400" /> },
+        { label: "TOPLAM DAKİKA", value: "1.120", icon: <TrendingUp className="w-4 h-4 text-gray-400" /> },
         { label: "SKOR KATKISI", value: 13, icon: <Sparkles className="w-4 h-4 text-amber-400" /> },
         { label: "ANALİZ SKORU", value: 8.2, icon: <BarChart3 className="w-4 h-4 text-blue-400" /> },
     ];
 
     return (
-        <div className="fixed inset-0 bg-[#050510]/95 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 lg:p-10 animate-in fade-in zoom-in duration-300" onClick={onClose}>
+        <div className="fixed inset-0 bg-[#000000]/95 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 lg:p-10 animate-in fade-in zoom-in duration-300" onClick={onClose}>
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-[#0A0B1E] w-full max-w-[1500px] h-full lg:h-[85vh] overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row relative rounded-3xl lg:rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/5"
+                className="bg-[#0a0a0a] w-full max-w-[1500px] h-full lg:h-[85vh] overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row relative rounded-3xl lg:rounded-[48px] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/5"
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
                 {/* Close Button */}
@@ -1062,11 +1372,11 @@ function StatDetailModal({ student, onClose, calculateRating }: any) {
                 <div className="w-full lg:w-[32%] bg-[#0D0E25] p-10 lg:p-14 flex flex-col border-r border-white/5 overflow-y-auto custom-scrollbar">
                     <div className="mb-12">
                         <div className="flex items-center gap-5 mb-10">
-                            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-3xl font-black text-white italic shadow-2xl">
+                            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-3xl font-black text-white italic shadow-2xl">
                                 {student.fullName.charAt(0)}
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-1">PROGRESİF KAYIT</span>
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">PROGRESİF KAYIT</span>
                                 <h2 className="text-2xl font-black text-white tracking-tight leading-none uppercase italic">{student.fullName}</h2>
                             </div>
                         </div>
@@ -1082,7 +1392,7 @@ function StatDetailModal({ student, onClose, calculateRating }: any) {
                         </div>
 
                         <div className="flex gap-3">
-                            <span className="px-5 py-2.5 bg-indigo-600 text-white text-[10px] font-black tracking-widest uppercase rounded-xl shadow-lg shadow-indigo-600/20">{student.position}</span>
+                            <span className="px-5 py-2.5 bg-white/10 text-white text-[10px] font-black tracking-widest uppercase rounded-xl shadow-lg shadow-white/20">{student.position}</span>
                             <span className="px-5 py-2.5 bg-white/5 border border-white/10 text-gray-400 text-[10px] font-black tracking-widest uppercase rounded-xl">{student.teamCategory || "U15"} KADROSU</span>
                         </div>
                     </div>
@@ -1102,13 +1412,13 @@ function StatDetailModal({ student, onClose, calculateRating }: any) {
                 </div>
 
                 {/* Right Side: Analytics & Matrix */}
-                <div className="flex-1 p-10 lg:p-14 overflow-y-auto bg-[#0A0B1E] custom-scrollbar">
+                <div className="flex-1 p-10 lg:p-14 overflow-y-auto bg-[#0a0a0a] custom-scrollbar">
                     <div className="space-y-12">
                         {/* Summary Modules */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {mockSeasonStats.map((stat, i) => (
                                 <div key={i} className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] group hover:bg-white/[0.04] hover:-translate-y-1 transition-all">
-                                    <div className="w-12 h-12 bg-indigo-600/10 rounded-2xl flex items-center justify-center mb-6 border border-indigo-600/20 group-hover:scale-110 group-hover:rotate-3 transition-all text-indigo-400">
+                                    <div className="w-12 h-12 bg-white/10/10 rounded-2xl flex items-center justify-center mb-6 border border-white/10/20 group-hover:scale-110 group-hover:rotate-3 transition-all text-gray-400">
                                         {stat.icon}
                                     </div>
                                     <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{stat.label}</div>
@@ -1122,12 +1432,12 @@ function StatDetailModal({ student, onClose, calculateRating }: any) {
                             {/* Performance Radar Placeholder */}
                             <div className="bg-[#0D0E25] border border-white/5 rounded-[40px] p-10 shadow-2xl flex flex-col">
                                 <div className="flex items-center justify-between mb-12">
-                                    <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">TEKNİK ANALİZ MATRİSİ</h3>
+                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">TEKNİK ANALİZ MATRİSİ</h3>
                                     <BarChart3 className="w-5 h-5 text-gray-700" />
                                 </div>
                                 <div className="flex-1 flex flex-wrap gap-5 items-center justify-center p-6">
                                     {Object.entries(student.stats).map(([key, value]: [string, any]) => (
-                                        <div key={key} className="flex flex-col items-center bg-white/5 border border-white/5 px-8 py-5 rounded-3xl min-w-[130px] group hover:bg-indigo-600 transition-all">
+                                        <div key={key} className="flex flex-col items-center bg-white/5 border border-white/5 px-8 py-5 rounded-3xl min-w-[130px] group hover:bg-white/10 transition-all">
                                             <span className="text-[9px] font-black text-gray-500 group-hover:text-white/40 uppercase mb-1">{key === 'pace' ? 'HIZ' : key === 'shooting' ? 'ŞUT' : key === 'passing' ? 'PAS' : key === 'dribbling' ? 'DRI' : key === 'defending' ? 'DEF' : 'FIZ'}</span>
                                             <span className="text-2xl font-black text-white italic">{value}</span>
                                         </div>
@@ -1145,8 +1455,8 @@ function StatDetailModal({ student, onClose, calculateRating }: any) {
                                                 "Mükemmel toparlanma hızı ve saha içi farkındalık."
                                             </p>
                                         </div>
-                                        <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl">
-                                            <p className="text-xs font-bold text-indigo-400 italic leading-relaxed">
+                                        <div className="p-6 bg-white/10/5 border border-white/20/10 rounded-3xl">
+                                            <p className="text-xs font-bold text-gray-400 italic leading-relaxed">
                                                 "Son bölgede karar verme kalitesi yaş grubunun üzerinde."
                                             </p>
                                         </div>
@@ -1164,7 +1474,7 @@ function StatDetailModal({ student, onClose, calculateRating }: any) {
                                                 key={i}
                                                 initial={{ height: 0 }}
                                                 animate={{ height: `${v * 10}%` }}
-                                                className={`flex-1 rounded-t-xl ${i === 5 ? 'bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-white/5'}`}
+                                                className={`flex-1 rounded-t-xl ${i === 5 ? 'bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-white/5'}`}
                                             />
                                         ))}
                                     </div>
@@ -1215,24 +1525,24 @@ function CommentsTab({ student, newComment, setNewComment, handleAddComment, sav
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
             <div className="flex flex-col gap-2 mb-8">
-                <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">ANTRENÖR <span className="text-indigo-500">NOTLARI</span></h2>
+                <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">ANTRENÖR <span className="text-gray-400">NOTLARI</span></h2>
                 <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Gelişim takibi ve özel gözlemler</p>
             </div>
 
-            <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px] rounded-full -mr-32 -mt-32 transition-all group-hover:bg-indigo-600/10" />
-                <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-8">YENİ GÖZLEM EKLE</h3>
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10/5 blur-[100px] rounded-full -mr-32 -mt-32 transition-all group-hover:bg-white/10/10" />
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-8">YENİ GÖZLEM EKLE</h3>
                 <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Sporcu teknik kapasitesi, fiziksel durumu veya mental gelişimi hakkında notunuzu buraya yazın..."
-                    className="w-full h-40 px-8 py-6 bg-black/20 border border-white/5 rounded-[32px] text-white placeholder:text-gray-600 resize-none focus:outline-none focus:border-indigo-500/50 focus:bg-black/40 transition-all font-bold text-sm italic shadow-inner"
+                    className="w-full h-40 px-8 py-6 bg-black/20 border border-white/5 rounded-[32px] text-white placeholder:text-gray-600 resize-none focus:outline-none focus:border-white/20/50 focus:bg-black/40 transition-all font-bold text-sm italic shadow-inner"
                 />
                 <div className="mt-8 flex justify-end">
                     <button
                         onClick={handleAddComment}
                         disabled={saving || !newComment.trim()}
-                        className="group flex items-center gap-4 px-10 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-indigo-500 hover:shadow-[0_20px_40px_rgba(79,70,229,0.3)] disabled:opacity-30"
+                        className="group flex items-center gap-4 px-10 py-5 bg-white/10 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-white/10 hover:shadow-[0_20px_40px_rgba(255,255,255,0.3)] disabled:opacity-30"
                     >
                         <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
                         {saving ? "KAYDEDİLİYOR..." : "NOTU SİSTEME İŞLE"}
@@ -1245,7 +1555,7 @@ function CommentsTab({ student, newComment, setNewComment, handleAddComment, sav
                     <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">GEÇMİŞ KAYITLAR ({comments.length})</h3>
                 </div>
                 {comments.length === 0 ? (
-                    <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-20 text-center shadow-2xl">
+                    <div className="bg-[#0a0a0a] border border-white/5 rounded-[40px] p-20 text-center shadow-2xl">
                         <MessageSquare className="w-16 h-16 text-gray-800 mx-auto mb-6" />
                         <p className="text-gray-600 font-black uppercase tracking-widest text-xs italic">Henüz bir veri girişi yapılmamış</p>
                     </div>
@@ -1256,17 +1566,17 @@ function CommentsTab({ student, newComment, setNewComment, handleAddComment, sav
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.1 }}
-                            className="bg-[#0A0B1E] border border-white/5 rounded-[32px] p-8 lg:p-10 hover:border-indigo-500/20 transition-all group"
+                            className="bg-[#0a0a0a] border border-white/5 rounded-[32px] p-8 lg:p-10 hover:border-white/20/20 transition-all group"
                         >
                             <div className="flex gap-8">
-                                <div className="w-16 h-16 bg-[#1A1B35] rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/5 shadow-2xl group-hover:bg-indigo-600 transition-all">
-                                    <User className="w-7 h-7 text-indigo-400 group-hover:text-white" />
+                                <div className="w-16 h-16 bg-[#111111] rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/5 shadow-2xl group-hover:bg-white/10 transition-all">
+                                    <User className="w-7 h-7 text-gray-400 group-hover:text-white" />
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-4">
                                             <span className="font-black text-white italic uppercase tracking-tight">{comment.coach?.fullName || user.fullName}</span>
-                                            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                                            <span className="w-1.5 h-1.5 bg-white/10 rounded-full" />
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                                                 {new Date(comment.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
                                             </span>
@@ -1354,7 +1664,7 @@ function NutritionTab({ student }: any) {
                     <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
                 </div>
             ) : plans.length === 0 ? (
-                <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-24 text-center shadow-2xl">
+                <div className="bg-[#0a0a0a] border border-white/5 rounded-[40px] p-24 text-center shadow-2xl">
                     <div className="w-24 h-24 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-10 border border-emerald-500/20">
                         <Utensils className="w-12 h-12 text-emerald-500" />
                     </div>
@@ -1364,7 +1674,7 @@ function NutritionTab({ student }: any) {
             ) : (
                 <div className="grid grid-cols-1 gap-10">
                     {plans.map((plan) => (
-                        <div key={plan._id} className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden group">
+                        <div key={plan._id} className="bg-[#0a0a0a] border border-white/5 rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-600/5 blur-[120px] rounded-full -mr-48 -mt-48 transition-all group-hover:bg-emerald-600/10" />
 
                             <div className="relative z-10">
@@ -1531,7 +1841,7 @@ function AITab({ student }: any) {
                 <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Yapay zeka destekli performans öngörüleri</p>
             </div>
 
-            <div className="bg-[#0A0B1E] border border-white/5 rounded-[50px] p-12 lg:p-20 relative overflow-hidden group">
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-[50px] p-12 lg:p-20 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-600/5 blur-[150px] rounded-full -mr-64 -mt-64 transition-all group-hover:bg-amber-600/10" />
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-orange-600/5 blur-[100px] rounded-full -ml-32 -mb-32" />
 
@@ -1675,7 +1985,7 @@ function ParentsTab({ user, students }: any) {
                     <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
                 </div>
             ) : parents.length === 0 ? (
-                <div className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-24 text-center shadow-2xl">
+                <div className="bg-[#0a0a0a] border border-white/5 rounded-[40px] p-24 text-center shadow-2xl">
                     <div className="w-24 h-24 bg-blue-500/10 rounded-3xl flex items-center justify-center mx-auto mb-10 border border-blue-500/20">
                         <Users className="w-12 h-12 text-blue-500" />
                     </div>
@@ -1690,7 +2000,7 @@ function ParentsTab({ user, students }: any) {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="bg-[#0A0B1E] border border-white/5 rounded-[40px] p-8 hover:border-blue-500/20 transition-all group relative overflow-hidden"
+                            className="bg-[#0a0a0a] border border-white/5 rounded-[40px] p-8 hover:border-blue-500/20 transition-all group relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-all" />
 
@@ -1912,18 +2222,18 @@ function TacticsTab({ students }: { students: Student[] }) {
         <div className="space-y-12 animate-in fade-in duration-700">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
                 <div className="flex flex-col gap-2">
-                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">TAKTAK <span className="text-indigo-500">MERKEZİ</span></h2>
+                    <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">TAKTAK <span className="text-gray-400">MERKEZİ</span></h2>
                     <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Diziliş ve stratejik planlama</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div className="lg:col-span-2">
-                    <div className="bg-[#0A0B1E] rounded-3xl lg:rounded-[50px] p-6 lg:p-12 border border-white/5 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/5 blur-[120px] -z-10 group-hover:bg-indigo-600/10 transition-all"></div>
+                    <div className="bg-[#0a0a0a] rounded-3xl lg:rounded-[50px] p-6 lg:p-12 border border-white/5 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10/5 blur-[120px] -z-10 group-hover:bg-white/10/10 transition-all"></div>
                         <div className="flex items-center gap-4 mb-10">
-                            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-indigo-500/10 rounded-xl lg:rounded-2xl flex items-center justify-center border border-indigo-500/20">
-                                <Presentation className="w-5 h-5 lg:w-6 lg:h-6 text-indigo-500" />
+                            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white/10/10 rounded-xl lg:rounded-2xl flex items-center justify-center border border-white/20/20">
+                                <Presentation className="w-5 h-5 lg:w-6 lg:h-6 text-gray-400" />
                             </div>
                             <h3 className="text-lg lg:text-xl font-black text-white italic uppercase tracking-tight">ANA DİZİLİŞ</h3>
                         </div>
@@ -1936,7 +2246,7 @@ function TacticsTab({ students }: { students: Student[] }) {
                 </div>
 
                 <div className="flex flex-col h-full">
-                    <div className="bg-[#0A0B1E] rounded-[50px] border border-white/5 p-8 flex-1 flex flex-col relative overflow-hidden group shadow-2xl">
+                    <div className="bg-[#0a0a0a] rounded-[50px] border border-white/5 p-8 flex-1 flex flex-col relative overflow-hidden group shadow-2xl">
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-600/5 blur-[100px] -z-10 group-hover:bg-emerald-600/10 transition-all"></div>
                         <div className="flex items-center gap-4 mb-10">
                             <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">

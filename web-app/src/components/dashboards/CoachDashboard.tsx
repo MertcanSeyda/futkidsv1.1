@@ -20,7 +20,7 @@ export function CoachDashboard({ user }: { user: any }) {
                     title="Aktif Oyuncular"
                     value="18"
                     change="+2 bu hafta"
-                    icon={<Users className="text-indigo-400" />}
+                    icon={<Users className="text-gray-400" />}
                 />
                 <StatCard
                     title="Sıradaki Maç"
@@ -41,10 +41,10 @@ export function CoachDashboard({ user }: { user: any }) {
                 <div className="bg-white/5 rounded-[2.5rem] border border-white/5 p-8">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
-                            <ClipboardList className="text-indigo-500 w-6 h-6" />
+                            <ClipboardList className="text-gray-400 w-6 h-6" />
                             <h3 className="text-xl font-black uppercase tracking-tight">Oyuncu Takibi</h3>
                         </div>
-                        <button className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-widest">TÜMÜ</button>
+                        <button className="text-xs font-bold text-gray-400 hover:text-gray-300 transition-colors uppercase tracking-widest">TÜMÜ</button>
                     </div>
 
                     <div className="space-y-4">
@@ -80,18 +80,18 @@ export function CoachDashboard({ user }: { user: any }) {
                         </div>
                     </div>
 
-                    <div className="bg-indigo-600/10 rounded-[2.5rem] border border-indigo-500/20 p-8">
+                    <div className="bg-white/10/10 rounded-[2.5rem] border border-white/20/20 p-8">
                         <div className="flex items-center gap-3 mb-4">
-                            <MessageSquare className="text-indigo-400 w-6 h-6" />
+                            <MessageSquare className="text-gray-400 w-6 h-6" />
                             <h3 className="text-xl font-black uppercase tracking-tight text-white">Hızlı Not Al</h3>
                         </div>
                         <p className="text-sm text-gray-400 mb-6 font-medium">Bir sonraki maç için taktiksel planlarını yazmayı unutma.</p>
                         <textarea
-                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-indigo-500/50 transition-all placeholder:text-gray-700"
+                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-white/20/50 transition-all placeholder:text-gray-700"
                             placeholder="Taktiksel notun..."
                             rows={3}
                         ></textarea>
-                        <button className="mt-4 w-full py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-indigo-600/20">KAYDET</button>
+                        <button className="mt-4 w-full py-3 bg-white/10 text-white font-bold rounded-xl text-sm shadow-lg shadow-white/20">KAYDET</button>
                     </div>
                 </div>
             </div>
@@ -107,7 +107,7 @@ function StatCard({ title, value, change, icon }: { title: string, value: string
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest">{title}</h4>
             </div>
             <div className="text-4xl font-black text-white tracking-tighter mb-1">{value}</div>
-            <div className="text-xs font-bold text-indigo-400 uppercase tracking-widest">{change}</div>
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">{change}</div>
         </div>
     );
 }
@@ -115,7 +115,7 @@ function StatCard({ title, value, change, icon }: { title: string, value: string
 function PlayerRow({ name, position, rating, status }: { name: string, position: string, rating: number, status: string }) {
     return (
         <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer group">
-            <div className="w-10 h-10 rounded-full bg-indigo-600/20 flex items-center justify-center font-bold text-indigo-400">{name.charAt(0)}</div>
+            <div className="w-10 h-10 rounded-full bg-white/10/20 flex items-center justify-center font-bold text-gray-400">{name.charAt(0)}</div>
             <div className="flex-1">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-white">{name}</span>
@@ -123,7 +123,7 @@ function PlayerRow({ name, position, rating, status }: { name: string, position:
                 </div>
                 <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">{status}</div>
             </div>
-            <div className="text-xl font-black text-indigo-500 pr-2">{rating}</div>
+            <div className="text-xl font-black text-gray-400 pr-2">{rating}</div>
             <ChevronRight size={16} className="text-gray-700 group-hover:text-white transition-colors" />
         </div>
     )
